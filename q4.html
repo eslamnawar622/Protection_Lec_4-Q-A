@@ -1,0 +1,3095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protection Slides Part 4 - Interactive Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 2.2em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        .slide-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        .slide-btn {
+            padding: 8px 14px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        .slide-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .slide-btn.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .slide-btn.completed {
+            background: #48bb78;
+            border-color: #48bb78;
+            color: white;
+        }
+        .slide-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.5s ease;
+        }
+        .slide-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #e0e0e0;
+        }
+        .question-card {
+            background: #fafbfc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .question-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        .question-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .question-text {
+            font-size: 1.15em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 12px 18px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .option:hover { border-color: #667eea; background: #f7fafc; }
+        .option.selected { border-color: #667eea; background: #edf2ff; }
+        .option.correct { border-color: #48bb78; background: #f0fff4; }
+        .option.wrong { border-color: #f56565; background: #fff5f5; }
+        .option-letter {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #4a5568;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 0.9em;
+        }
+        .option.selected .option-letter { background: #667eea; color: white; }
+        .option.correct .option-letter { background: #48bb78; color: white; }
+        .option.wrong .option-letter { background: #f56565; color: white; }
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            border-radius: 0 8px 8px 0;
+            display: none;
+            animation: slideDown 0.4s ease;
+        }
+        .explanation.show { display: block; }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+        .explanation-label {
+            font-weight: bold;
+            color: #ed8936;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .explanation-text {
+            color: #4a5568;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        .tf-options { display: flex; gap: 15px; }
+        .tf-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .tf-option:hover { border-color: #667eea; background: #f7fafc; }
+        .tf-option.selected { border-color: #667eea; background: #edf2ff; }
+        .tf-option.correct { border-color: #48bb78; background: #f0fff4; }
+        .tf-option.wrong { border-color: #f56565; background: #fff5f5; }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .nav-btn {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .score-board {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-weight: 600;
+            color: #667eea;
+            border: 2px solid #e2e8f0;
+        }
+        .score-value { font-size: 1.3em; color: #48bb78; }
+        .slide-counter {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 10px;
+            text-transform: uppercase;
+        }
+        .type-mcq { background: #ebf8ff; color: #3182ce; }
+        .type-tf { background: #faf5ff; color: #805ad5; }
+        .completion-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        .completion-message.show { display: block; }
+        .completion-message h2 { font-size: 2em; margin-bottom: 15px; }
+        .completion-message p { font-size: 1.2em; opacity: 0.9; }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5em; }
+            .slide-section { padding: 20px; }
+            .score-board { position: static; margin-bottom: 20px; text-align: center; }
+            .tf-options { flex-direction: column; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="score-board">
+        Score: <span class="score-value" id="score">0</span> / <span id="total">0</span>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Protection Slides Part 4</h1>
+            <p>Interactive Quiz - Overcurrent Protection & Coordination</p>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        <div class="slide-nav" id="slideNav"></div>
+        <div class="completion-message" id="completionMessage">
+            <h2>🎉 Congratulations!</h2>
+            <p>You have completed all questions! Great job!</p>
+        </div>
+<div class="slide-section" id="slide1">
+<div class="slide-counter">Slide 1 of 26</div>
+<h2 class="slide-title">Slide 1: Overcurrent Protection</h2>
+<div class="question-card" id="q_1_1">
+<div class="question-text"><span class="question-number">1</span>This lecture covers protection against:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_1_1', 0, 0, 'q_1_1_exp')">
+<span class="option-letter">A</span>Phase and ground faults
+</div>
+<div class="option" onclick="selectOption('q_1_1', 1, 0, 'q_1_1_exp')">
+<span class="option-letter">B</span>Voltage faults only
+</div>
+<div class="option" onclick="selectOption('q_1_1', 2, 0, 'q_1_1_exp')">
+<span class="option-letter">C</span>Frequency faults
+</div>
+<div class="option" onclick="selectOption('q_1_1', 3, 0, 'q_1_1_exp')">
+<span class="option-letter">D</span>Power factor faults
+</div>
+</div>
+<div class="explanation" id="q_1_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Overcurrent Protection covers Phase and ground faults protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_1_2">
+<div class="question-text"><span class="question-number">2</span>Overcurrent protection is used for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_1_2', 0, 2, 'q_1_2_exp')">
+<span class="option-letter">A</span>Only transmission lines
+</div>
+<div class="option" onclick="selectOption('q_1_2', 1, 2, 'q_1_2_exp')">
+<span class="option-letter">B</span>Only transformers
+</div>
+<div class="option" onclick="selectOption('q_1_2', 2, 2, 'q_1_2_exp')">
+<span class="option-letter">C</span>Phase and ground faults in power systems
+</div>
+<div class="option" onclick="selectOption('q_1_2', 3, 2, 'q_1_2_exp')">
+<span class="option-letter">D</span>Only generators
+</div>
+</div>
+<div class="explanation" id="q_1_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Overcurrent Protection is used for protection against phase and ground faults.</div>
+</div>
+</div>
+<div class="question-card" id="q_1_3">
+<div class="question-text"><span class="question-number">3</span>Overcurrent protection covers both phase faults and ground faults.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_1_3', true, true, 'q_1_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_1_3', false, true, 'q_1_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_1_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The lecture title is 'Overcurrent Protection (Phase and ground faults protection)'.</div>
+</div>
+</div>
+<div class="question-card" id="q_1_4">
+<div class="question-text"><span class="question-number">4</span>Which types of faults are discussed in this lecture?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_1_4', 0, 3, 'q_1_4_exp')">
+<span class="option-letter">A</span>Only L-L faults
+</div>
+<div class="option" onclick="selectOption('q_1_4', 1, 3, 'q_1_4_exp')">
+<span class="option-letter">B</span>Only L-G faults
+</div>
+<div class="option" onclick="selectOption('q_1_4', 2, 3, 'q_1_4_exp')">
+<span class="option-letter">C</span>Only three-phase faults
+</div>
+<div class="option" onclick="selectOption('q_1_4', 3, 3, 'q_1_4_exp')">
+<span class="option-letter">D</span>L-L, L-L-L, and L-G faults
+</div>
+</div>
+<div class="explanation" id="q_1_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Phase faults include L-L and L-L-L, and ground faults include L-G or L-L-G.</div>
+</div>
+</div>
+<div class="question-card" id="q_1_5">
+<div class="question-text"><span class="question-number">5</span>The main protection devices discussed are:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_1_5', 0, 1, 'q_1_5_exp')">
+<span class="option-letter">A</span>Distance relays
+</div>
+<div class="option" onclick="selectOption('q_1_5', 1, 1, 'q_1_5_exp')">
+<span class="option-letter">B</span>Overcurrent relays (50/51)
+</div>
+<div class="option" onclick="selectOption('q_1_5', 2, 1, 'q_1_5_exp')">
+<span class="option-letter">C</span>Differential relays
+</div>
+<div class="option" onclick="selectOption('q_1_5', 3, 1, 'q_1_5_exp')">
+<span class="option-letter">D</span>Directional relays
+</div>
+</div>
+<div class="explanation" id="q_1_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Instantaneous and timed overcurrent relays (50/51) are used for protection against phase and ground faults.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" disabled>← Previous</button>
+<button class="nav-btn" onclick="goToSlide(2)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide2">
+<div class="slide-counter">Slide 2 of 26</div>
+<h2 class="slide-title">Slide 2: Introduction - Fault Types</h2>
+<div class="question-card" id="q_2_1">
+<div class="question-text"><span class="question-number">1</span>Phase faults occur between:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_2_1', 0, 0, 'q_2_1_exp')">
+<span class="option-letter">A</span>Two or more phase conductors (L-L and/or L-L-L)
+</div>
+<div class="option" onclick="selectOption('q_2_1', 1, 0, 'q_2_1_exp')">
+<span class="option-letter">B</span>Phase and ground only
+</div>
+<div class="option" onclick="selectOption('q_2_1', 2, 0, 'q_2_1_exp')">
+<span class="option-letter">C</span>Neutral and ground
+</div>
+<div class="option" onclick="selectOption('q_2_1', 3, 0, 'q_2_1_exp')">
+<span class="option-letter">D</span>Single phase only
+</div>
+</div>
+<div class="explanation" id="q_2_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Phase Faults are faults that include phase conductors only. They occur between two or more phase conductors (L-L and/or L-L-L).</div>
+</div>
+</div>
+<div class="question-card" id="q_2_2">
+<div class="question-text"><span class="question-number">2</span>Ground faults include paths such as:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_2_2', 0, 2, 'q_2_2_exp')">
+<span class="option-letter">A</span>L-L only
+</div>
+<div class="option" onclick="selectOption('q_2_2', 1, 2, 'q_2_2_exp')">
+<span class="option-letter">B</span>L-L-L only
+</div>
+<div class="option" onclick="selectOption('q_2_2', 2, 2, 'q_2_2_exp')">
+<span class="option-letter">C</span>L-G or L-L-G
+</div>
+<div class="option" onclick="selectOption('q_2_2', 3, 2, 'q_2_2_exp')">
+<span class="option-letter">D</span>N-G only
+</div>
+</div>
+<div class="explanation" id="q_2_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground Faults are faults that include ground path such as L-G or L-L-G.</div>
+</div>
+</div>
+<div class="question-card" id="q_2_3">
+<div class="question-text"><span class="question-number">3</span>Ground faults are approximately what percentage of all transmission faults?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_2_3', 0, 3, 'q_2_3_exp')">
+<span class="option-letter">A</span>10-20%
+</div>
+<div class="option" onclick="selectOption('q_2_3', 1, 3, 'q_2_3_exp')">
+<span class="option-letter">B</span>30-40%
+</div>
+<div class="option" onclick="selectOption('q_2_3', 2, 3, 'q_2_3_exp')">
+<span class="option-letter">C</span>50-60%
+</div>
+<div class="option" onclick="selectOption('q_2_3', 3, 3, 'q_2_3_exp')">
+<span class="option-letter">D</span>70-80%
+</div>
+</div>
+<div class="explanation" id="q_2_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground faults occur much more frequently (approx. 70-80% of all transmission faults).</div>
+</div>
+</div>
+<div class="question-card" id="q_2_4">
+<div class="question-text"><span class="question-number">4</span>Ground faults are often much lower in magnitude than phase faults.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_2_4', true, true, 'q_2_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_2_4', false, true, 'q_2_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_2_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground faults are often much lower in magnitude than phase faults but occur much more frequently.</div>
+</div>
+</div>
+<div class="question-card" id="q_2_5">
+<div class="question-text"><span class="question-number">5</span>Overcurrent relays (50/51) are used mainly in:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_2_5', 0, 1, 'q_2_5_exp')">
+<span class="option-letter">A</span>Only low voltage
+</div>
+<div class="option" onclick="selectOption('q_2_5', 1, 1, 'q_2_5_exp')">
+<span class="option-letter">B</span>Medium and higher voltage
+</div>
+<div class="option" onclick="selectOption('q_2_5', 2, 1, 'q_2_5_exp')">
+<span class="option-letter">C</span>Only high voltage
+</div>
+<div class="option" onclick="selectOption('q_2_5', 3, 1, 'q_2_5_exp')">
+<span class="option-letter">D</span>Only DC systems
+</div>
+</div>
+<div class="explanation" id="q_2_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Relays are used mainly in medium and higher voltage systems.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(1)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(3)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide3">
+<div class="slide-counter">Slide 3 of 26</div>
+<h2 class="slide-title">Slide 3: Phase Fault Protection using 50/51 Relays</h2>
+<div class="question-card" id="q_3_1">
+<div class="question-text"><span class="question-number">1</span>Phase fault relays are connected to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_3_1', 0, 0, 'q_3_1_exp')">
+<span class="option-letter">A</span>Current transformers (CTs) on each phase
+</div>
+<div class="option" onclick="selectOption('q_3_1', 1, 0, 'q_3_1_exp')">
+<span class="option-letter">B</span>Voltage transformers
+</div>
+<div class="option" onclick="selectOption('q_3_1', 2, 0, 'q_3_1_exp')">
+<span class="option-letter">C</span>Power transformers
+</div>
+<div class="option" onclick="selectOption('q_3_1', 3, 0, 'q_3_1_exp')">
+<span class="option-letter">D</span>Potential transformers
+</div>
+</div>
+<div class="explanation" id="q_3_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Phase fault relays are directly connected to current transformers (CTs) on each phase to detect any overcurrent.</div>
+</div>
+</div>
+<div class="question-card" id="q_3_2">
+<div class="question-text"><span class="question-number">2</span>The ANSI number for the Time-Delayed Overcurrent relay is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_3_2', 0, 2, 'q_3_2_exp')">
+<span class="option-letter">A</span>ANSI 50
+</div>
+<div class="option" onclick="selectOption('q_3_2', 1, 2, 'q_3_2_exp')">
+<span class="option-letter">B</span>ANSI 87
+</div>
+<div class="option" onclick="selectOption('q_3_2', 2, 2, 'q_3_2_exp')">
+<span class="option-letter">C</span>ANSI 51
+</div>
+<div class="option" onclick="selectOption('q_3_2', 3, 2, 'q_3_2_exp')">
+<span class="option-letter">D</span>ANSI 21
+</div>
+</div>
+<div class="explanation" id="q_3_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Time-Delayed Overcurrent relay (ANSI 51): Inverse-time relays are used for protection against overloading and low-current faults.</div>
+</div>
+</div>
+<div class="question-card" id="q_3_3">
+<div class="question-text"><span class="question-number">3</span>The ANSI number for the Instantaneous Overcurrent relay is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_3_3', 0, 3, 'q_3_3_exp')">
+<span class="option-letter">A</span>ANSI 21
+</div>
+<div class="option" onclick="selectOption('q_3_3', 1, 3, 'q_3_3_exp')">
+<span class="option-letter">B</span>ANSI 51
+</div>
+<div class="option" onclick="selectOption('q_3_3', 2, 3, 'q_3_3_exp')">
+<span class="option-letter">C</span>ANSI 87
+</div>
+<div class="option" onclick="selectOption('q_3_3', 3, 3, 'q_3_3_exp')">
+<span class="option-letter">D</span>ANSI 50
+</div>
+</div>
+<div class="explanation" id="q_3_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Instantaneous Overcurrent relay (ANSI 50): It provides an immediate trip with a definite time for severe, nearby short circuits.</div>
+</div>
+</div>
+<div class="question-card" id="q_3_4">
+<div class="question-text"><span class="question-number">4</span>Inverse-time relays provide a trip delay that is directly proportional to the fault magnitude.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_3_4', true, false, 'q_3_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_3_4', false, false, 'q_3_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_3_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Inverse-time relays provide a trip delay that is inversely proportional to the fault magnitude.</div>
+</div>
+</div>
+<div class="question-card" id="q_3_5">
+<div class="question-text"><span class="question-number">5</span>The instantaneous overcurrent relay (ANSI 50) is typically set from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_3_5', 0, 1, 'q_3_5_exp')">
+<span class="option-letter">A</span>1-2 times
+</div>
+<div class="option" onclick="selectOption('q_3_5', 1, 1, 'q_3_5_exp')">
+<span class="option-letter">B</span>5-10 times the pickup value
+</div>
+<div class="option" onclick="selectOption('q_3_5', 2, 1, 'q_3_5_exp')">
+<span class="option-letter">C</span>3-4 times
+</div>
+<div class="option" onclick="selectOption('q_3_5', 3, 1, 'q_3_5_exp')">
+<span class="option-letter">D</span>15-20 times
+</div>
+</div>
+<div class="explanation" id="q_3_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The internal fault current in this case exceeds a very high threshold (typically from 5-10 times the pickup value).</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(2)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(4)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide4">
+<div class="slide-counter">Slide 4 of 26</div>
+<h2 class="slide-title">Slide 4: Phase Fault Protection - 50/51 Coordination</h2>
+<div class="question-card" id="q_4_1">
+<div class="question-text"><span class="question-number">1</span>It is common to use both (50/51) relays for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_4_1', 0, 0, 'q_4_1_exp')">
+<span class="option-letter">A</span>Overcurrent protection
+</div>
+<div class="option" onclick="selectOption('q_4_1', 1, 0, 'q_4_1_exp')">
+<span class="option-letter">B</span>Voltage protection
+</div>
+<div class="option" onclick="selectOption('q_4_1', 2, 0, 'q_4_1_exp')">
+<span class="option-letter">C</span>Distance protection
+</div>
+<div class="option" onclick="selectOption('q_4_1', 3, 0, 'q_4_1_exp')">
+<span class="option-letter">D</span>Differential protection
+</div>
+</div>
+<div class="explanation" id="q_4_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">It is common to use both (50/51) relays for overcurrent protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_4_2">
+<div class="question-text"><span class="question-number">2</span>The relays 50 and 51 are connected:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_4_2', 0, 2, 'q_4_2_exp')">
+<span class="option-letter">A</span>In parallel
+</div>
+<div class="option" onclick="selectOption('q_4_2', 1, 2, 'q_4_2_exp')">
+<span class="option-letter">B</span>In a star configuration
+</div>
+<div class="option" onclick="selectOption('q_4_2', 2, 2, 'q_4_2_exp')">
+<span class="option-letter">C</span>In series
+</div>
+<div class="option" onclick="selectOption('q_4_2', 3, 2, 'q_4_2_exp')">
+<span class="option-letter">D</span>Independently
+</div>
+</div>
+<div class="explanation" id="q_4_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The relays 50 and 51 are connected in series to have the same current.</div>
+</div>
+</div>
+<div class="question-card" id="q_4_3">
+<div class="question-text"><span class="question-number">3</span>The Time-Delayed relay (51) is adjusted based on:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_4_3', 0, 3, 'q_4_3_exp')">
+<span class="option-letter">A</span>Minimum load current
+</div>
+<div class="option" onclick="selectOption('q_4_3', 1, 3, 'q_4_3_exp')">
+<span class="option-letter">B</span>Transformer rating
+</div>
+<div class="option" onclick="selectOption('q_4_3', 2, 3, 'q_4_3_exp')">
+<span class="option-letter">C</span>Fault current only
+</div>
+<div class="option" onclick="selectOption('q_4_3', 3, 3, 'q_4_3_exp')">
+<span class="option-letter">D</span>Maximum load current
+</div>
+</div>
+<div class="explanation" id="q_4_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The Time-Delayed relay (51) is adjusted based on the maximum load current. It is usually set slightly above the maximum expected load current.</div>
+</div>
+</div>
+<div class="question-card" id="q_4_4">
+<div class="question-text"><span class="question-number">4</span>The Instantaneous (50) relay pickup is usually set from 5 to 10 times the pickup value of the 51 relay.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_4_4', true, true, 'q_4_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_4_4', false, true, 'q_4_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_4_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The Instantaneous (50) relay pickup is usually set from 5 to 10 times the pickup value of the 51 relay.</div>
+</div>
+</div>
+<div class="question-card" id="q_4_5">
+<div class="question-text"><span class="question-number">5</span>In low voltage applications, 50-51 relays can be replaced by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_4_5', 0, 1, 'q_4_5_exp')">
+<span class="option-letter">A</span>Distance relays
+</div>
+<div class="option" onclick="selectOption('q_4_5', 1, 1, 'q_4_5_exp')">
+<span class="option-letter">B</span>MCB, MCCB, ACB
+</div>
+<div class="option" onclick="selectOption('q_4_5', 2, 1, 'q_4_5_exp')">
+<span class="option-letter">C</span>Differential relays
+</div>
+<div class="option" onclick="selectOption('q_4_5', 3, 1, 'q_4_5_exp')">
+<span class="option-letter">D</span>Directional relays
+</div>
+</div>
+<div class="explanation" id="q_4_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">50-51 relays set can be replaced in low voltage applications by MCB, MCCB, ACB.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(3)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(5)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide5">
+<div class="slide-counter">Slide 5 of 26</div>
+<h2 class="slide-title">Slide 5: Ground Fault Protection - Residual Current</h2>
+<div class="question-card" id="q_5_1">
+<div class="question-text"><span class="question-number">1</span>Ground fault relays monitor the:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_5_1', 0, 0, 'q_5_1_exp')">
+<span class="option-letter">A</span>Residual Current or summation of all phases' currents
+</div>
+<div class="option" onclick="selectOption('q_5_1', 1, 0, 'q_5_1_exp')">
+<span class="option-letter">B</span>Phase voltage
+</div>
+<div class="option" onclick="selectOption('q_5_1', 2, 0, 'q_5_1_exp')">
+<span class="option-letter">C</span>Power factor
+</div>
+<div class="option" onclick="selectOption('q_5_1', 3, 0, 'q_5_1_exp')">
+<span class="option-letter">D</span>Frequency
+</div>
+</div>
+<div class="explanation" id="q_5_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground fault relays Monitor the 'Residual Current' or summation of all phases' currents.</div>
+</div>
+</div>
+<div class="question-card" id="q_5_2">
+<div class="question-text"><span class="question-number">2</span>In a balanced 3-phase, three wire system, the vector sum of the currents is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_5_2', 0, 2, 'q_5_2_exp')">
+<span class="option-letter">A</span>Maximum
+</div>
+<div class="option" onclick="selectOption('q_5_2', 1, 2, 'q_5_2_exp')">
+<span class="option-letter">B</span>Equal to load current
+</div>
+<div class="option" onclick="selectOption('q_5_2', 2, 2, 'q_5_2_exp')">
+<span class="option-letter">C</span>Zero
+</div>
+<div class="option" onclick="selectOption('q_5_2', 3, 2, 'q_5_2_exp')">
+<span class="option-letter">D</span>Infinite
+</div>
+</div>
+<div class="explanation" id="q_5_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">In a balanced 3-phase, three wire system, the vector sum of the currents is zero.</div>
+</div>
+</div>
+<div class="question-card" id="q_5_3">
+<div class="question-text"><span class="question-number">3</span>In case of ground fault, the residual current is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_5_3', 0, 3, 'q_5_3_exp')">
+<span class="option-letter">A</span>Zero
+</div>
+<div class="option" onclick="selectOption('q_5_3', 1, 3, 'q_5_3_exp')">
+<span class="option-letter">B</span>Negative
+</div>
+<div class="option" onclick="selectOption('q_5_3', 2, 3, 'q_5_3_exp')">
+<span class="option-letter">C</span>Equal to load current
+</div>
+<div class="option" onclick="selectOption('q_5_3', 3, 3, 'q_5_3_exp')">
+<span class="option-letter">D</span>I_A + I_B + I_C = 3I_0
+</div>
+</div>
+<div class="explanation" id="q_5_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">In case of ground fault, some current returns through the earth/neutral. The sum is no longer zero. I_residual = I_A + I_B + I_C = 3I_0</div>
+</div>
+</div>
+<div class="question-card" id="q_5_4">
+<div class="question-text"><span class="question-number">4</span>Ground fault relays can be set more sensitively than phase relays, even below load current levels.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_5_4', true, true, 'q_5_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_5_4', false, true, 'q_5_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_5_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground fault relays can be set much more sensitively than phase relays, even below load current levels, which provides improved ground fault protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_5_5">
+<div class="question-text"><span class="question-number">5</span>Conventional overcurrent relays for ground fault protection are designated as:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_5_5', 0, 1, 'q_5_5_exp')">
+<span class="option-letter">A</span>50/51 only
+</div>
+<div class="option" onclick="selectOption('q_5_5', 1, 1, 'q_5_5_exp')">
+<span class="option-letter">B</span>50N/51N or 50G/51G
+</div>
+<div class="option" onclick="selectOption('q_5_5', 2, 1, 'q_5_5_exp')">
+<span class="option-letter">C</span>87A/87B
+</div>
+<div class="option" onclick="selectOption('q_5_5', 3, 1, 'q_5_5_exp')">
+<span class="option-letter">D</span>21A/21B
+</div>
+</div>
+<div class="explanation" id="q_5_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Conventional overcurrent relays (50/51) are commonly used for ground fault protection; in this case, they are designated as 50N/51N or 50G/51G.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(4)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(6)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide6">
+<div class="slide-counter">Slide 6 of 26</div>
+<h2 class="slide-title">Slide 6: Ground Fault Protection - 50N/51N vs 50G/51G</h2>
+<div class="question-card" id="q_6_1">
+<div class="question-text"><span class="question-number">1</span>50N/51N (Neutral or residual overcurrent) is derived from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_6_1', 0, 0, 'q_6_1_exp')">
+<span class="option-letter">A</span>The sum of the three phase CTs (Ia + Ib + Ic)
+</div>
+<div class="option" onclick="selectOption('q_6_1', 1, 0, 'q_6_1_exp')">
+<span class="option-letter">B</span>A dedicated ground CT
+</div>
+<div class="option" onclick="selectOption('q_6_1', 2, 0, 'q_6_1_exp')">
+<span class="option-letter">C</span>Voltage transformers
+</div>
+<div class="option" onclick="selectOption('q_6_1', 3, 0, 'q_6_1_exp')">
+<span class="option-letter">D</span>Power transformers
+</div>
+</div>
+<div class="explanation" id="q_6_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">50N/51N (Neutral or residual overcurrent): it is derived from the sum of the three phase CTs (Ia + Ib + Ic).</div>
+</div>
+</div>
+<div class="question-card" id="q_6_2">
+<div class="question-text"><span class="question-number">2</span>50G/51G (Ground overcurrent) is measured using:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_6_2', 0, 2, 'q_6_2_exp')">
+<span class="option-letter">A</span>The sum of three phase CTs
+</div>
+<div class="option" onclick="selectOption('q_6_2', 1, 2, 'q_6_2_exp')">
+<span class="option-letter">B</span>Voltage transformers
+</div>
+<div class="option" onclick="selectOption('q_6_2', 2, 2, 'q_6_2_exp')">
+<span class="option-letter">C</span>A dedicated ground CT (e.g., core-balance CT / zero-sequence CT)
+</div>
+<div class="option" onclick="selectOption('q_6_2', 3, 2, 'q_6_2_exp')">
+<span class="option-letter">D</span>Current transformers on neutral only
+</div>
+</div>
+<div class="explanation" id="q_6_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">50G/51G (Ground overcurrent): Relay doesn't use the phase CTs. Ground overcurrent is measured using a dedicated ground CT.</div>
+</div>
+</div>
+<div class="question-card" id="q_6_3">
+<div class="question-text"><span class="question-number">3</span>Ground (Earth) Fault protection detects earth-leakage current:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_6_3', 0, 3, 'q_6_3_exp')">
+<span class="option-letter">A</span>Only at the source
+</div>
+<div class="option" onclick="selectOption('q_6_3', 1, 3, 'q_6_3_exp')">
+<span class="option-letter">B</span>Only at the load
+</div>
+<div class="option" onclick="selectOption('q_6_3', 2, 3, 'q_6_3_exp')">
+<span class="option-letter">C</span>Only inside transformers
+</div>
+<div class="option" onclick="selectOption('q_6_3', 3, 3, 'q_6_3_exp')">
+<span class="option-letter">D</span>Anywhere downstream of the relay location
+</div>
+</div>
+<div class="explanation" id="q_6_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground (Earth) Fault protection which detects earth-leakage current occurring anywhere downstream of the relay location, providing overall system ground-fault protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_6_4">
+<div class="question-text"><span class="question-number">4</span>Restricted Ground Fault protection operates only for earth faults within a clearly defined zone.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_6_4', true, true, 'q_6_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_6_4', false, true, 'q_6_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_6_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Restricted Ground (Earth) Fault protection is a highly sensitive and fast protection scheme that operates only for earth faults within a clearly defined and restricted zone.</div>
+</div>
+</div>
+<div class="question-card" id="q_6_5">
+<div class="question-text"><span class="question-number">5</span>Which type of ground fault protection provides overall system protection?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_6_5', 0, 1, 'q_6_5_exp')">
+<span class="option-letter">A</span>Restricted Ground Fault
+</div>
+<div class="option" onclick="selectOption('q_6_5', 1, 1, 'q_6_5_exp')">
+<span class="option-letter">B</span>Ground (Earth) Fault protection
+</div>
+<div class="option" onclick="selectOption('q_6_5', 2, 1, 'q_6_5_exp')">
+<span class="option-letter">C</span>Differential protection
+</div>
+<div class="option" onclick="selectOption('q_6_5', 3, 1, 'q_6_5_exp')">
+<span class="option-letter">D</span>Distance protection
+</div>
+</div>
+<div class="explanation" id="q_6_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Ground (Earth) Fault protection detects earth-leakage current occurring anywhere downstream of the relay location, providing overall system ground-fault protection.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(5)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(7)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide7">
+<div class="slide-counter">Slide 7 of 26</div>
+<h2 class="slide-title">Slide 7: Ground Fault Relay Protection - Connection Diagrams</h2>
+<div class="question-card" id="q_7_1">
+<div class="question-text"><span class="question-number">1</span>The residual current for ground fault relay is obtained by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_7_1', 0, 0, 'q_7_1_exp')">
+<span class="option-letter">A</span>Summing the three phase currents through the ground relay
+</div>
+<div class="option" onclick="selectOption('q_7_1', 1, 0, 'q_7_1_exp')">
+<span class="option-letter">B</span>Using a single CT on one phase
+</div>
+<div class="option" onclick="selectOption('q_7_1', 2, 0, 'q_7_1_exp')">
+<span class="option-letter">C</span>Using a voltage transformer
+</div>
+<div class="option" onclick="selectOption('q_7_1', 3, 0, 'q_7_1_exp')">
+<span class="option-letter">D</span>Measuring neutral voltage
+</div>
+</div>
+<div class="explanation" id="q_7_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">During normal operation, the vector sum of three phase currents is zero and no current flows through the ground relay. During ground fault, the ground relay can sense the current.</div>
+</div>
+</div>
+<div class="question-card" id="q_7_2">
+<div class="question-text"><span class="question-number">2</span>During normal balanced conditions, the current through the ground relay is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_7_2', 0, 2, 'q_7_2_exp')">
+<span class="option-letter">A</span>Maximum
+</div>
+<div class="option" onclick="selectOption('q_7_2', 1, 2, 'q_7_2_exp')">
+<span class="option-letter">B</span>Equal to load current
+</div>
+<div class="option" onclick="selectOption('q_7_2', 2, 2, 'q_7_2_exp')">
+<span class="option-letter">C</span>Zero
+</div>
+<div class="option" onclick="selectOption('q_7_2', 3, 2, 'q_7_2_exp')">
+<span class="option-letter">D</span>Very high
+</div>
+</div>
+<div class="explanation" id="q_7_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">During normal operation, the vector sum of three phase currents is zero and no current flows through the ground relay.</div>
+</div>
+</div>
+<div class="question-card" id="q_7_3">
+<div class="question-text"><span class="question-number">3</span>Phase relays can sense any overcurrent in any phase, while ground relays sense residual current.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_7_3', true, true, 'q_7_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_7_3', false, true, 'q_7_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_7_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Phase relays in the three phases can sense any overcurrent in any phase. The ground relay senses the residual current.</div>
+</div>
+</div>
+<div class="question-card" id="q_7_4">
+<div class="question-text"><span class="question-number">4</span>Any trip signal from phase or ground overcurrent relays operates the:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_7_4', 0, 3, 'q_7_4_exp')">
+<span class="option-letter">A</span>Transformer only
+</div>
+<div class="option" onclick="selectOption('q_7_4', 1, 3, 'q_7_4_exp')">
+<span class="option-letter">B</span>Generator only
+</div>
+<div class="option" onclick="selectOption('q_7_4', 2, 3, 'q_7_4_exp')">
+<span class="option-letter">C</span>Load only
+</div>
+<div class="option" onclick="selectOption('q_7_4', 3, 3, 'q_7_4_exp')">
+<span class="option-letter">D</span>Designated circuit breaker
+</div>
+</div>
+<div class="explanation" id="q_7_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Any trip signal from phase or ground overcurrent relays operates the designated circuit breaker.</div>
+</div>
+</div>
+<div class="question-card" id="q_7_5">
+<div class="question-text"><span class="question-number">5</span>The trip contacts of phase and ground relays are connected in:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_7_5', 0, 1, 'q_7_5_exp')">
+<span class="option-letter">A</span>Series
+</div>
+<div class="option" onclick="selectOption('q_7_5', 1, 1, 'q_7_5_exp')">
+<span class="option-letter">B</span>A combination that allows either to trip
+</div>
+<div class="option" onclick="selectOption('q_7_5', 2, 1, 'q_7_5_exp')">
+<span class="option-letter">C</span>Parallel
+</div>
+<div class="option" onclick="selectOption('q_7_5', 3, 1, 'q_7_5_exp')">
+<span class="option-letter">D</span>Only ground relay can trip
+</div>
+</div>
+<div class="explanation" id="q_7_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The diagram shows that trip contacts of phase and ground relays are arranged such that any overcurrent due to phase or ground fault is treated by the designated relay to issue a trip signal.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(6)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(8)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide8">
+<div class="slide-counter">Slide 8 of 26</div>
+<h2 class="slide-title">Slide 8: Ground Fault Protection for 4 Wire System (50G/51G)</h2>
+<div class="question-card" id="q_8_1">
+<div class="question-text"><span class="question-number">1</span>In four-wire systems, ground fault relays measure ground fault current using:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_8_1', 0, 0, 'q_8_1_exp')">
+<span class="option-letter">A</span>Four current transformers (CTs)
+</div>
+<div class="option" onclick="selectOption('q_8_1', 1, 0, 'q_8_1_exp')">
+<span class="option-letter">B</span>Three CTs only
+</div>
+<div class="option" onclick="selectOption('q_8_1', 2, 0, 'q_8_1_exp')">
+<span class="option-letter">C</span>Two CTs
+</div>
+<div class="option" onclick="selectOption('q_8_1', 3, 0, 'q_8_1_exp')">
+<span class="option-letter">D</span>One CT
+</div>
+</div>
+<div class="explanation" id="q_8_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">In four-wire systems, ground fault relays (50G/51G) measure the ground fault current using four current transformers (CTs).</div>
+</div>
+</div>
+<div class="question-card" id="q_8_2">
+<div class="question-text"><span class="question-number">2</span>Four-wire systems may experience unbalanced operating conditions due to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_8_2', 0, 2, 'q_8_2_exp')">
+<span class="option-letter">A</span>Line-to-line connected loads
+</div>
+<div class="option" onclick="selectOption('q_8_2', 1, 2, 'q_8_2_exp')">
+<span class="option-letter">B</span>Three-phase balanced loads
+</div>
+<div class="option" onclick="selectOption('q_8_2', 2, 2, 'q_8_2_exp')">
+<span class="option-letter">C</span>Line-to-neutral connected loads
+</div>
+<div class="option" onclick="selectOption('q_8_2', 3, 2, 'q_8_2_exp')">
+<span class="option-letter">D</span>Capacitive loads
+</div>
+</div>
+<div class="explanation" id="q_8_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">These systems may experience unbalanced operating conditions due to line-to-neutral connected loads.</div>
+</div>
+</div>
+<div class="question-card" id="q_8_3">
+<div class="question-text"><span class="question-number">3</span>Four CTs are installed on:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_8_3', 0, 3, 'q_8_3_exp')">
+<span class="option-letter">A</span>Only three phase conductors
+</div>
+<div class="option" onclick="selectOption('q_8_3', 1, 3, 'q_8_3_exp')">
+<span class="option-letter">B</span>Only the neutral conductor
+</div>
+<div class="option" onclick="selectOption('q_8_3', 2, 3, 'q_8_3_exp')">
+<span class="option-letter">C</span>Only two phase conductors
+</div>
+<div class="option" onclick="selectOption('q_8_3', 3, 3, 'q_8_3_exp')">
+<span class="option-letter">D</span>Three phase conductors and the neutral conductor
+</div>
+</div>
+<div class="explanation" id="q_8_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Four CTs are installed on the three phase conductors and the neutral conductor.</div>
+</div>
+</div>
+<div class="question-card" id="q_8_4">
+<div class="question-text"><span class="question-number">4</span>The four CT arrangement ensures that only true ground fault current is detected by the relay.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_8_4', true, true, 'q_8_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_8_4', false, true, 'q_8_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_8_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">This arrangement ensures that only true ground fault current is detected by the relay, eliminating the effect of residual currents caused by load unbalance.</div>
+</div>
+</div>
+<div class="question-card" id="q_8_5">
+<div class="question-text"><span class="question-number">5</span>The purpose of using four CTs in 4-wire systems is to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_8_5', 0, 1, 'q_8_5_exp')">
+<span class="option-letter">A</span>Increase sensitivity
+</div>
+<div class="option" onclick="selectOption('q_8_5', 1, 1, 'q_8_5_exp')">
+<span class="option-letter">B</span>Eliminate the effect of residual currents caused by load unbalance
+</div>
+<div class="option" onclick="selectOption('q_8_5', 2, 1, 'q_8_5_exp')">
+<span class="option-letter">C</span>Reduce cost
+</div>
+<div class="option" onclick="selectOption('q_8_5', 3, 1, 'q_8_5_exp')">
+<span class="option-letter">D</span>Increase speed
+</div>
+</div>
+<div class="explanation" id="q_8_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">To eliminate the effect of residual currents caused by load unbalance, four CTs are installed on the three phase conductors and the neutral conductor.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(7)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(9)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide9">
+<div class="slide-counter">Slide 9 of 26</div>
+<h2 class="slide-title">Slide 9: Ground Fault Protection Using Core-Balance CT</h2>
+<div class="question-card" id="q_9_1">
+<div class="question-text"><span class="question-number">1</span>A Core-Balance CT is a:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_9_1', 0, 0, 'q_9_1_exp')">
+<span class="option-letter">A</span>Single window-type CT that encircles all conductors
+</div>
+<div class="option" onclick="selectOption('q_9_1', 1, 0, 'q_9_1_exp')">
+<span class="option-letter">B</span>Three-phase CT
+</div>
+<div class="option" onclick="selectOption('q_9_1', 2, 0, 'q_9_1_exp')">
+<span class="option-letter">C</span>Split-core CT
+</div>
+<div class="option" onclick="selectOption('q_9_1', 3, 0, 'q_9_1_exp')">
+<span class="option-letter">D</span>High-voltage CT
+</div>
+</div>
+<div class="explanation" id="q_9_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">A single window-type CT (Core-Balance CT) is mounted to encircle all three-phase conductors or three-phase conductors and neutral for 4-wire systems.</div>
+</div>
+</div>
+<div class="question-card" id="q_9_2">
+<div class="question-text"><span class="question-number">2</span>How many CTs are required for residual current measurements using Core-Balance CT?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_9_2', 0, 2, 'q_9_2_exp')">
+<span class="option-letter">A</span>Three CTs
+</div>
+<div class="option" onclick="selectOption('q_9_2', 1, 2, 'q_9_2_exp')">
+<span class="option-letter">B</span>Two CTs
+</div>
+<div class="option" onclick="selectOption('q_9_2', 2, 2, 'q_9_2_exp')">
+<span class="option-letter">C</span>Only one CT
+</div>
+<div class="option" onclick="selectOption('q_9_2', 3, 2, 'q_9_2_exp')">
+<span class="option-letter">D</span>Four CTs
+</div>
+</div>
+<div class="explanation" id="q_9_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Only one CT is required for residual current measurements using Core-Balance CT.</div>
+</div>
+</div>
+<div class="question-card" id="q_9_3">
+<div class="question-text"><span class="question-number">3</span>For 4-wire systems, the Core-Balance CT encircles:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_9_3', 0, 3, 'q_9_3_exp')">
+<span class="option-letter">A</span>Only three phase conductors
+</div>
+<div class="option" onclick="selectOption('q_9_3', 1, 3, 'q_9_3_exp')">
+<span class="option-letter">B</span>Only one phase
+</div>
+<div class="option" onclick="selectOption('q_9_3', 2, 3, 'q_9_3_exp')">
+<span class="option-letter">C</span>Only neutral
+</div>
+<div class="option" onclick="selectOption('q_9_3', 3, 3, 'q_9_3_exp')">
+<span class="option-letter">D</span>Three phase conductors and neutral
+</div>
+</div>
+<div class="explanation" id="q_9_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">A single window-type CT is mounted to encircle all three-phase conductors or three-phase conductors and neutral for 4-wire systems.</div>
+</div>
+</div>
+<div class="question-card" id="q_9_4">
+<div class="question-text"><span class="question-number">4</span>Core-Balance CT provides improved ground-fault protection compared to using separate phase CTs.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_9_4', true, true, 'q_9_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_9_4', false, true, 'q_9_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_9_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">An improved type of ground-fault protection can be obtained by a zero-sequence relay scheme using Core-Balance CT.</div>
+</div>
+</div>
+<div class="question-card" id="q_9_5">
+<div class="question-text"><span class="question-number">5</span>The Core-Balance CT scheme is also known as:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_9_5', 0, 1, 'q_9_5_exp')">
+<span class="option-letter">A</span>Positive-sequence scheme
+</div>
+<div class="option" onclick="selectOption('q_9_5', 1, 1, 'q_9_5_exp')">
+<span class="option-letter">B</span>Zero-sequence relay scheme
+</div>
+<div class="option" onclick="selectOption('q_9_5', 2, 1, 'q_9_5_exp')">
+<span class="option-letter">C</span>Negative-sequence scheme
+</div>
+<div class="option" onclick="selectOption('q_9_5', 3, 1, 'q_9_5_exp')">
+<span class="option-letter">D</span>Differential scheme
+</div>
+</div>
+<div class="explanation" id="q_9_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">An improved type of ground-fault protection can be obtained by a zero-sequence relay scheme in which a single window-type CT (Core-Balance CT) is used.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(8)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(10)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide10">
+<div class="slide-counter">Slide 10 of 26</div>
+<h2 class="slide-title">Slide 10: Restricted Earth Fault Relay</h2>
+<div class="question-card" id="q_10_1">
+<div class="question-text"><span class="question-number">1</span>Restricted ground fault relay is used for protection of:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_10_1', 0, 0, 'q_10_1_exp')">
+<span class="option-letter">A</span>Important equipment like generators or transformers
+</div>
+<div class="option" onclick="selectOption('q_10_1', 1, 0, 'q_10_1_exp')">
+<span class="option-letter">B</span>Transmission lines only
+</div>
+<div class="option" onclick="selectOption('q_10_1', 2, 0, 'q_10_1_exp')">
+<span class="option-letter">C</span>Loads only
+</div>
+<div class="option" onclick="selectOption('q_10_1', 3, 0, 'q_10_1_exp')">
+<span class="option-letter">D</span>Busbars only
+</div>
+</div>
+<div class="explanation" id="q_10_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The shown connection is restricted ground fault relay. It is used for protection of important equipment like generators or transformers.</div>
+</div>
+</div>
+<div class="question-card" id="q_10_2">
+<div class="question-text"><span class="question-number">2</span>The restricted ground fault relay compares:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_10_2', 0, 2, 'q_10_2_exp')">
+<span class="option-letter">A</span>Voltage and current
+</div>
+<div class="option" onclick="selectOption('q_10_2', 1, 2, 'q_10_2_exp')">
+<span class="option-letter">B</span>Power and frequency
+</div>
+<div class="option" onclick="selectOption('q_10_2', 2, 2, 'q_10_2_exp')">
+<span class="option-letter">C</span>The sum of three phase currents with ground path current
+</div>
+<div class="option" onclick="selectOption('q_10_2', 3, 2, 'q_10_2_exp')">
+<span class="option-letter">D</span>Two phase currents only
+</div>
+</div>
+<div class="explanation" id="q_10_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">It compares the sum of three phase currents with ground path current of the equipment.</div>
+</div>
+</div>
+<div class="question-card" id="q_10_3">
+<div class="question-text"><span class="question-number">3</span>For an external fault, the relay current is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_10_3', 0, 3, 'q_10_3_exp')">
+<span class="option-letter">A</span>Maximum
+</div>
+<div class="option" onclick="selectOption('q_10_3', 1, 3, 'q_10_3_exp')">
+<span class="option-letter">B</span>Equal to load current
+</div>
+<div class="option" onclick="selectOption('q_10_3', 2, 3, 'q_10_3_exp')">
+<span class="option-letter">C</span>Very high
+</div>
+<div class="option" onclick="selectOption('q_10_3', 3, 3, 'q_10_3_exp')">
+<span class="option-letter">D</span>Zero
+</div>
+</div>
+<div class="explanation" id="q_10_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For external fault, both values are the same and the relay current is zero.</div>
+</div>
+</div>
+<div class="question-card" id="q_10_4">
+<div class="question-text"><span class="question-number">4</span>For an internal fault, the restricted ground relay operates because the difference between phase sum and ground current is not zero.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_10_4', true, true, 'q_10_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_10_4', false, true, 'q_10_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_10_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For internal fault, the difference is not zero since both signals are not equal, as result, the restricted ground relay operates.</div>
+</div>
+</div>
+<div class="question-card" id="q_10_5">
+<div class="question-text"><span class="question-number">5</span>The stabilizing resistor in the restricted earth fault relay is used to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_10_5', 0, 1, 'q_10_5_exp')">
+<span class="option-letter">A</span>Increase sensitivity
+</div>
+<div class="option" onclick="selectOption('q_10_5', 1, 1, 'q_10_5_exp')">
+<span class="option-letter">B</span>Prevent operation during external faults
+</div>
+<div class="option" onclick="selectOption('q_10_5', 2, 1, 'q_10_5_exp')">
+<span class="option-letter">C</span>Reduce speed
+</div>
+<div class="option" onclick="selectOption('q_10_5', 3, 1, 'q_10_5_exp')">
+<span class="option-letter">D</span>Increase current
+</div>
+</div>
+<div class="explanation" id="q_10_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The stabilizing resistor helps prevent unwanted operation during external faults or transient conditions.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(9)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(11)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide11">
+<div class="slide-counter">Slide 11 of 26</div>
+<h2 class="slide-title">Slide 11: Damage Curves and Starting Currents</h2>
+<div class="question-card" id="q_11_1">
+<div class="question-text"><span class="question-number">1</span>This section discusses:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_11_1', 0, 0, 'q_11_1_exp')">
+<span class="option-letter">A</span>Damage curves and starting currents of equipment
+</div>
+<div class="option" onclick="selectOption('q_11_1', 1, 0, 'q_11_1_exp')">
+<span class="option-letter">B</span>Only relay settings
+</div>
+<div class="option" onclick="selectOption('q_11_1', 2, 0, 'q_11_1_exp')">
+<span class="option-letter">C</span>Only ground faults
+</div>
+<div class="option" onclick="selectOption('q_11_1', 3, 0, 'q_11_1_exp')">
+<span class="option-letter">D</span>Only phase faults
+</div>
+</div>
+<div class="explanation" id="q_11_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">This section covers Damage Curves and Starting Currents.</div>
+</div>
+</div>
+<div class="question-card" id="q_11_2">
+<div class="question-text"><span class="question-number">2</span>The main aim of phase protection is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_11_2', 0, 2, 'q_11_2_exp')">
+<span class="option-letter">A</span>Only equipment protection
+</div>
+<div class="option" onclick="selectOption('q_11_2', 1, 2, 'q_11_2_exp')">
+<span class="option-letter">B</span>Only personnel protection
+</div>
+<div class="option" onclick="selectOption('q_11_2', 2, 2, 'q_11_2_exp')">
+<span class="option-letter">C</span>Protection of equipment and personnel
+</div>
+<div class="option" onclick="selectOption('q_11_2', 3, 2, 'q_11_2_exp')">
+<span class="option-letter">D</span>Only system stability
+</div>
+</div>
+<div class="explanation" id="q_11_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The main aim of phase protection is protection of equipment and personnel.</div>
+</div>
+</div>
+<div class="question-card" id="q_11_3">
+<div class="question-text"><span class="question-number">3</span>Avoiding explosion and fire of equipment due to short circuits has no effect on human safety.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_11_3', true, false, 'q_11_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_11_3', false, false, 'q_11_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_11_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Avoiding explosion and fire of equipment due to short circuits is directly reflect on human safety. The statement is false because it DOES affect human safety.</div>
+</div>
+</div>
+<div class="question-card" id="q_11_4">
+<div class="question-text"><span class="question-number">4</span>The protection system should be designed to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_11_4', 0, 3, 'q_11_4_exp')">
+<span class="option-letter">A</span>Operate after equipment damage
+</div>
+<div class="option" onclick="selectOption('q_11_4', 1, 3, 'q_11_4_exp')">
+<span class="option-letter">B</span>Only protect transformers
+</div>
+<div class="option" onclick="selectOption('q_11_4', 2, 3, 'q_11_4_exp')">
+<span class="option-letter">C</span>Ignore starting currents
+</div>
+<div class="option" onclick="selectOption('q_11_4', 3, 3, 'q_11_4_exp')">
+<span class="option-letter">D</span>Clear fault before point of damage
+</div>
+</div>
+<div class="explanation" id="q_11_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The protection system should be designed to avoid damage to all electrical equipment. This is done by clearing fault before point of damage.</div>
+</div>
+</div>
+<div class="question-card" id="q_11_5">
+<div class="question-text"><span class="question-number">5</span>Many electrical equipment have starting current that is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_11_5', 0, 1, 'q_11_5_exp')">
+<span class="option-letter">A</span>Equal to normal full load current
+</div>
+<div class="option" onclick="selectOption('q_11_5', 1, 1, 'q_11_5_exp')">
+<span class="option-letter">B</span>Much larger than normal full load current
+</div>
+<div class="option" onclick="selectOption('q_11_5', 2, 1, 'q_11_5_exp')">
+<span class="option-letter">C</span>Lower than normal full load current
+</div>
+<div class="option" onclick="selectOption('q_11_5', 3, 1, 'q_11_5_exp')">
+<span class="option-letter">D</span>Zero
+</div>
+</div>
+<div class="explanation" id="q_11_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Many electrical equipment have starting current which is much larger than the normal full load current.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(10)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(12)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide12">
+<div class="slide-counter">Slide 12 of 26</div>
+<h2 class="slide-title">Slide 12: Damage Curves and Starting Currents - Details</h2>
+<div class="question-card" id="q_12_1">
+<div class="question-text"><span class="question-number">1</span>The protection system should avoid tripping due to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_12_1', 0, 0, 'q_12_1_exp')">
+<span class="option-letter">A</span>Starting current of equipment
+</div>
+<div class="option" onclick="selectOption('q_12_1', 1, 0, 'q_12_1_exp')">
+<span class="option-letter">B</span>Fault currents only
+</div>
+<div class="option" onclick="selectOption('q_12_1', 2, 0, 'q_12_1_exp')">
+<span class="option-letter">C</span>Load current
+</div>
+<div class="option" onclick="selectOption('q_12_1', 3, 0, 'q_12_1_exp')">
+<span class="option-letter">D</span>Normal operation
+</div>
+</div>
+<div class="explanation" id="q_12_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The protection system should be designed to avoid tripping due to starting current of the equipment.</div>
+</div>
+</div>
+<div class="question-card" id="q_12_2">
+<div class="question-text"><span class="question-number">2</span>Damage curves represent the minimum current-time limit an equipment can withstand.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_12_2', true, false, 'q_12_2_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_12_2', false, false, 'q_12_2_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_12_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">A damage curve represents the MAXIMUM current-time limit an equipment can withstand without permanent damage. The statement is false because it says minimum instead of maximum.</div>
+</div>
+</div>
+<div class="question-card" id="q_12_3">
+<div class="question-text"><span class="question-number">3</span>Damage curves should be considered for equipment like:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_12_3', 0, 2, 'q_12_3_exp')">
+<span class="option-letter">A</span>Only cables
+</div>
+<div class="option" onclick="selectOption('q_12_3', 1, 2, 'q_12_3_exp')">
+<span class="option-letter">B</span>Only transformers
+</div>
+<div class="option" onclick="selectOption('q_12_3', 2, 2, 'q_12_3_exp')">
+<span class="option-letter">C</span>Transformers, cables, large motors, and generators
+</div>
+<div class="option" onclick="selectOption('q_12_3', 3, 2, 'q_12_3_exp')">
+<span class="option-letter">D</span>Only motors
+</div>
+</div>
+<div class="explanation" id="q_12_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Damage curves of equipment like transformers, cables, large motors, and generators should be taken into consideration while designing the protection system.</div>
+</div>
+</div>
+<div class="question-card" id="q_12_4">
+<div class="question-text"><span class="question-number">4</span>For transformers, the damage curve can be collapsed into:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_12_4', 0, 3, 'q_12_4_exp')">
+<span class="option-letter">A</span>IEEE point
+</div>
+<div class="option" onclick="selectOption('q_12_4', 1, 3, 'q_12_4_exp')">
+<span class="option-letter">B</span>NEC point
+</div>
+<div class="option" onclick="selectOption('q_12_4', 2, 3, 'q_12_4_exp')">
+<span class="option-letter">C</span>IEC point
+</div>
+<div class="option" onclick="selectOption('q_12_4', 3, 3, 'q_12_4_exp')">
+<span class="option-letter">D</span>ANSI point
+</div>
+</div>
+<div class="explanation" id="q_12_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For transformers, damage curve can be collapsed into ANSI point.</div>
+</div>
+</div>
+<div class="question-card" id="q_12_5">
+<div class="question-text"><span class="question-number">5</span>The ANSI Point is used to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_12_5', 0, 1, 'q_12_5_exp')">
+<span class="option-letter">A</span>Measure voltage
+</div>
+<div class="option" onclick="selectOption('q_12_5', 1, 1, 'q_12_5_exp')">
+<span class="option-letter">B</span>Protect power transformers from damage during a short circuit
+</div>
+<div class="option" onclick="selectOption('q_12_5', 2, 1, 'q_12_5_exp')">
+<span class="option-letter">C</span>Measure current
+</div>
+<div class="option" onclick="selectOption('q_12_5', 3, 1, 'q_12_5_exp')">
+<span class="option-letter">D</span>Control frequency
+</div>
+</div>
+<div class="explanation" id="q_12_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">ANSI Point (often referred to as the Transformer Damage Point) is a critical benchmark used to protect power transformers from damage during a short circuit.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(11)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(13)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide13">
+<div class="slide-counter">Slide 13 of 26</div>
+<h2 class="slide-title">Slide 13: Damage Curves - Characteristics</h2>
+<div class="question-card" id="q_13_1">
+<div class="question-text"><span class="question-number">1</span>On a damage curve, the X-axis represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_13_1', 0, 0, 'q_13_1_exp')">
+<span class="option-letter">A</span>Time (seconds)
+</div>
+<div class="option" onclick="selectOption('q_13_1', 1, 0, 'q_13_1_exp')">
+<span class="option-letter">B</span>Current
+</div>
+<div class="option" onclick="selectOption('q_13_1', 2, 0, 'q_13_1_exp')">
+<span class="option-letter">C</span>Voltage
+</div>
+<div class="option" onclick="selectOption('q_13_1', 3, 0, 'q_13_1_exp')">
+<span class="option-letter">D</span>Frequency
+</div>
+</div>
+<div class="explanation" id="q_13_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">X-axis → Time (seconds), Y-axis → Current</div>
+</div>
+</div>
+<div class="question-card" id="q_13_2">
+<div class="question-text"><span class="question-number">2</span>On a damage curve, the Y-axis represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_13_2', 0, 2, 'q_13_2_exp')">
+<span class="option-letter">A</span>Time
+</div>
+<div class="option" onclick="selectOption('q_13_2', 1, 2, 'q_13_2_exp')">
+<span class="option-letter">B</span>Voltage
+</div>
+<div class="option" onclick="selectOption('q_13_2', 2, 2, 'q_13_2_exp')">
+<span class="option-letter">C</span>Current
+</div>
+<div class="option" onclick="selectOption('q_13_2', 3, 2, 'q_13_2_exp')">
+<span class="option-letter">D</span>Power
+</div>
+</div>
+<div class="explanation" id="q_13_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">X-axis → Time (seconds), Y-axis → Current</div>
+</div>
+</div>
+<div class="question-card" id="q_13_3">
+<div class="question-text"><span class="question-number">3</span>Anything to the right or above the damage curve causes:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_13_3', 0, 3, 'q_13_3_exp')">
+<span class="option-letter">A</span>Normal operation
+</div>
+<div class="option" onclick="selectOption('q_13_3', 1, 3, 'q_13_3_exp')">
+<span class="option-letter">B</span>Increased voltage
+</div>
+<div class="option" onclick="selectOption('q_13_3', 2, 3, 'q_13_3_exp')">
+<span class="option-letter">C</span>Reduced current
+</div>
+<div class="option" onclick="selectOption('q_13_3', 3, 3, 'q_13_3_exp')">
+<span class="option-letter">D</span>Equipment to damage
+</div>
+</div>
+<div class="explanation" id="q_13_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Anything to the right or above the curve causes the equipment to damage.</div>
+</div>
+</div>
+<div class="question-card" id="q_13_4">
+<div class="question-text"><span class="question-number">4</span>Backup protection can operate after reaching the damage curve.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_13_4', true, false, 'q_13_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_13_4', false, false, 'q_13_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_13_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Backup protection must operate BEFORE reaching the damage curve. The statement is false because backup must operate before damage occurs.</div>
+</div>
+</div>
+<div class="question-card" id="q_13_5">
+<div class="question-text"><span class="question-number">5</span>Damage curves are caused by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_13_5', 0, 1, 'q_13_5_exp')">
+<span class="option-letter">A</span>Only thermal stresses
+</div>
+<div class="option" onclick="selectOption('q_13_5', 1, 1, 'q_13_5_exp')">
+<span class="option-letter">B</span>Thermal and mechanical stresses
+</div>
+<div class="option" onclick="selectOption('q_13_5', 2, 1, 'q_13_5_exp')">
+<span class="option-letter">C</span>Only mechanical stresses
+</div>
+<div class="option" onclick="selectOption('q_13_5', 3, 1, 'q_13_5_exp')">
+<span class="option-letter">D</span>Only electrical stresses
+</div>
+</div>
+<div class="explanation" id="q_13_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">A damage curve represents the maximum current-time limit an equipment can withstand without permanent damage due to thermal and mechanical stresses.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(12)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(14)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide14">
+<div class="slide-counter">Slide 14 of 26</div>
+<h2 class="slide-title">Slide 14: Example of XLPE Damage Curves</h2>
+<div class="question-card" id="q_14_1">
+<div class="question-text"><span class="question-number">1</span>The figure shows damage curves for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_14_1', 0, 0, 'q_14_1_exp')">
+<span class="option-letter">A</span>XLPE cables
+</div>
+<div class="option" onclick="selectOption('q_14_1', 1, 0, 'q_14_1_exp')">
+<span class="option-letter">B</span>Transformers
+</div>
+<div class="option" onclick="selectOption('q_14_1', 2, 0, 'q_14_1_exp')">
+<span class="option-letter">C</span>Motors
+</div>
+<div class="option" onclick="selectOption('q_14_1', 3, 0, 'q_14_1_exp')">
+<span class="option-letter">D</span>Generators
+</div>
+</div>
+<div class="explanation" id="q_14_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The figure shows Cable Short-Circuit Damage Curves for XLPE cables of different cross-sections.</div>
+</div>
+</div>
+<div class="question-card" id="q_14_2">
+<div class="question-text"><span class="question-number">2</span>The cable cross-sections shown in the damage curves include:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_14_2', 0, 2, 'q_14_2_exp')">
+<span class="option-letter">A</span>Only 16 mm²
+</div>
+<div class="option" onclick="selectOption('q_14_2', 1, 2, 'q_14_2_exp')">
+<span class="option-letter">B</span>Only 300 mm²
+</div>
+<div class="option" onclick="selectOption('q_14_2', 2, 2, 'q_14_2_exp')">
+<span class="option-letter">C</span>16, 35, 70, 150, and 300 mm²
+</div>
+<div class="option" onclick="selectOption('q_14_2', 3, 2, 'q_14_2_exp')">
+<span class="option-letter">D</span>Only 150 mm²
+</div>
+</div>
+<div class="explanation" id="q_14_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The legend shows cable cross-sections: 16 mm², 35 mm², 70 mm², 150 mm², and 300 mm².</div>
+</div>
+</div>
+<div class="question-card" id="q_14_3">
+<div class="question-text"><span class="question-number">3</span>Smaller cable cross-sections can withstand higher short-circuit currents than larger ones.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_14_3', true, false, 'q_14_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_14_3', false, false, 'q_14_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_14_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Larger cross-sections (300 mm²) can withstand higher short-circuit currents than smaller ones. The statement is false because it reverses the relationship.</div>
+</div>
+</div>
+<div class="question-card" id="q_14_4">
+<div class="question-text"><span class="question-number">4</span>As fault duration increases, the withstand current:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_14_4', 0, 3, 'q_14_4_exp')">
+<span class="option-letter">A</span>Increases
+</div>
+<div class="option" onclick="selectOption('q_14_4', 1, 3, 'q_14_4_exp')">
+<span class="option-letter">B</span>Remains constant
+</div>
+<div class="option" onclick="selectOption('q_14_4', 2, 3, 'q_14_4_exp')">
+<span class="option-letter">C</span>Becomes zero
+</div>
+<div class="option" onclick="selectOption('q_14_4', 3, 3, 'q_14_4_exp')">
+<span class="option-letter">D</span>Decreases
+</div>
+</div>
+<div class="explanation" id="q_14_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The curves show that for longer fault durations, the allowable short-circuit current decreases.</div>
+</div>
+</div>
+<div class="question-card" id="q_14_5">
+<div class="question-text"><span class="question-number">5</span>The Y-axis shows short-circuit current in:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_14_5', 0, 1, 'q_14_5_exp')">
+<span class="option-letter">A</span>Amperes
+</div>
+<div class="option" onclick="selectOption('q_14_5', 1, 1, 'q_14_5_exp')">
+<span class="option-letter">B</span>kA (kiloamperes)
+</div>
+<div class="option" onclick="selectOption('q_14_5', 2, 1, 'q_14_5_exp')">
+<span class="option-letter">C</span>Volts
+</div>
+<div class="option" onclick="selectOption('q_14_5', 3, 1, 'q_14_5_exp')">
+<span class="option-letter">D</span>Ohms
+</div>
+</div>
+<div class="explanation" id="q_14_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The Y-axis is labeled 'Short-Circuit Current (kA)' indicating kiloamperes.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(13)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(15)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide15">
+<div class="slide-counter">Slide 15 of 26</div>
+<h2 class="slide-title">Slide 15: Typical Values of ANSI Points</h2>
+<div class="question-card" id="q_15_1">
+<div class="question-text"><span class="question-number">1</span>This slide discusses typical values of:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_15_1', 0, 0, 'q_15_1_exp')">
+<span class="option-letter">A</span>ANSI points for transformer protection
+</div>
+<div class="option" onclick="selectOption('q_15_1', 1, 0, 'q_15_1_exp')">
+<span class="option-letter">B</span>IEEE points
+</div>
+<div class="option" onclick="selectOption('q_15_1', 2, 0, 'q_15_1_exp')">
+<span class="option-letter">C</span>IEC points
+</div>
+<div class="option" onclick="selectOption('q_15_1', 3, 0, 'q_15_1_exp')">
+<span class="option-letter">D</span>NEC points
+</div>
+</div>
+<div class="explanation" id="q_15_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The slide title is 'Typical values of ANSI Points'.</div>
+</div>
+</div>
+<div class="question-card" id="q_15_2">
+<div class="question-text"><span class="question-number">2</span>ANSI points are used as benchmarks for motor speed protection.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_15_2', true, false, 'q_15_2_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_15_2', false, false, 'q_15_2_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_15_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">ANSI points are used for transformer damage protection, not motor speed. The statement is false because it mentions the wrong application.</div>
+</div>
+</div>
+<div class="question-card" id="q_15_3">
+<div class="question-text"><span class="question-number">3</span>ANSI points are related to:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_15_3', 0, 2, 'q_15_3_exp')">
+<span class="option-letter">A</span>Voltage protection
+</div>
+<div class="option" onclick="selectOption('q_15_3', 1, 2, 'q_15_3_exp')">
+<span class="option-letter">B</span>Frequency protection
+</div>
+<div class="option" onclick="selectOption('q_15_3', 2, 2, 'q_15_3_exp')">
+<span class="option-letter">C</span>Transformer damage curves
+</div>
+<div class="option" onclick="selectOption('q_15_3', 3, 2, 'q_15_3_exp')">
+<span class="option-letter">D</span>Ground fault protection
+</div>
+</div>
+<div class="explanation" id="q_15_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For transformers, damage curve can be collapsed into ANSI point.</div>
+</div>
+</div>
+<div class="question-card" id="q_15_4">
+<div class="question-text"><span class="question-number">4</span>The ANSI point represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_15_4', 0, 3, 'q_15_4_exp')">
+<span class="option-letter">A</span>Normal operating point
+</div>
+<div class="option" onclick="selectOption('q_15_4', 1, 3, 'q_15_4_exp')">
+<span class="option-letter">B</span>Rated voltage point
+</div>
+<div class="option" onclick="selectOption('q_15_4', 2, 3, 'q_15_4_exp')">
+<span class="option-letter">C</span>Minimum load point
+</div>
+<div class="option" onclick="selectOption('q_15_4', 3, 3, 'q_15_4_exp')">
+<span class="option-letter">D</span>Maximum current-time limit for transformer protection
+</div>
+</div>
+<div class="explanation" id="q_15_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">ANSI Point is a critical benchmark used to protect power transformers from damage during a short circuit.</div>
+</div>
+</div>
+<div class="question-card" id="q_15_5">
+<div class="question-text"><span class="question-number">5</span>ANSI points help protection engineers set relay settings to avoid transformer damage.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_15_5', true, true, 'q_15_5_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_15_5', false, true, 'q_15_5_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_15_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">ANSI points are used as benchmarks to ensure protection operates before transformer damage occurs.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(14)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(16)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide16">
+<div class="slide-counter">Slide 16 of 26</div>
+<h2 class="slide-title">Slide 16: Induction Motor Thermal Limit Curve</h2>
+<div class="question-card" id="q_16_1">
+<div class="question-text"><span class="question-number">1</span>The figure shows the thermal limit curve for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_16_1', 0, 1, 'q_16_1_exp')">
+<span class="option-letter">A</span>Transformers
+</div>
+<div class="option" onclick="selectOption('q_16_1', 1, 1, 'q_16_1_exp')">
+<span class="option-letter">B</span>Induction motors
+</div>
+<div class="option" onclick="selectOption('q_16_1', 2, 1, 'q_16_1_exp')">
+<span class="option-letter">C</span>Cables
+</div>
+<div class="option" onclick="selectOption('q_16_1', 3, 1, 'q_16_1_exp')">
+<span class="option-letter">D</span>Generators
+</div>
+</div>
+<div class="explanation" id="q_16_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The figure shows a typical induction motor thermal limit curve.</div>
+</div>
+</div>
+<div class="question-card" id="q_16_2">
+<div class="question-text"><span class="question-number">2</span>The three regions shown in the motor thermal limit curve are:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_16_2', 0, 0, 'q_16_2_exp')">
+<span class="option-letter">A</span>Overload, Acceleration, and Locked Rotor
+</div>
+<div class="option" onclick="selectOption('q_16_2', 1, 0, 'q_16_2_exp')">
+<span class="option-letter">B</span>Start, Run, and Stop
+</div>
+<div class="option" onclick="selectOption('q_16_2', 2, 0, 'q_16_2_exp')">
+<span class="option-letter">C</span>Fault, Normal, and Emergency
+</div>
+<div class="option" onclick="selectOption('q_16_2', 3, 0, 'q_16_2_exp')">
+<span class="option-letter">D</span>Low, Medium, and High
+</div>
+</div>
+<div class="explanation" id="q_16_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The curve shows three regions: Overload, Acceleration, and Locked Rotor.</div>
+</div>
+</div>
+<div class="question-card" id="q_16_3">
+<div class="question-text"><span class="question-number">3</span>The X-axis of the motor thermal limit curve represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_16_3', 0, 2, 'q_16_3_exp')">
+<span class="option-letter">A</span>Time in seconds
+</div>
+<div class="option" onclick="selectOption('q_16_3', 1, 2, 'q_16_3_exp')">
+<span class="option-letter">B</span>Voltage
+</div>
+<div class="option" onclick="selectOption('q_16_3', 2, 2, 'q_16_3_exp')">
+<span class="option-letter">C</span>% Current
+</div>
+<div class="option" onclick="selectOption('q_16_3', 3, 2, 'q_16_3_exp')">
+<span class="option-letter">D</span>Speed
+</div>
+</div>
+<div class="explanation" id="q_16_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The X-axis is labeled '% Current'.</div>
+</div>
+</div>
+<div class="question-card" id="q_16_4">
+<div class="question-text"><span class="question-number">4</span>The Y-axis of the motor thermal limit curve represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_16_4', 0, 3, 'q_16_4_exp')">
+<span class="option-letter">A</span>Current
+</div>
+<div class="option" onclick="selectOption('q_16_4', 1, 3, 'q_16_4_exp')">
+<span class="option-letter">B</span>Power
+</div>
+<div class="option" onclick="selectOption('q_16_4', 2, 3, 'q_16_4_exp')">
+<span class="option-letter">C</span>Voltage
+</div>
+<div class="option" onclick="selectOption('q_16_4', 3, 3, 'q_16_4_exp')">
+<span class="option-letter">D</span>Time (seconds)
+</div>
+</div>
+<div class="explanation" id="q_16_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The Y-axis is labeled 'Time (seconds)'.</div>
+</div>
+</div>
+<div class="question-card" id="q_16_5">
+<div class="question-text"><span class="question-number">5</span>The locked rotor region shows the minimum time the motor can withstand normal operation.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_16_5', true, false, 'q_16_5_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_16_5', false, false, 'q_16_5_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_16_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The Locked Rotor region shows the MAXIMUM time the motor can withstand locked rotor current, not minimum time for normal operation. The statement is false.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(15)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(17)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide17">
+<div class="slide-counter">Slide 17 of 26</div>
+<h2 class="slide-title">Slide 17: Starting Currents</h2>
+<div class="question-card" id="q_17_1">
+<div class="question-text"><span class="question-number">1</span>Devices like motors and transformers have starting current that is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_17_1', 0, 1, 'q_17_1_exp')">
+<span class="option-letter">A</span>Lower than normal full load current
+</div>
+<div class="option" onclick="selectOption('q_17_1', 1, 1, 'q_17_1_exp')">
+<span class="option-letter">B</span>Larger than normal full load current
+</div>
+<div class="option" onclick="selectOption('q_17_1', 2, 1, 'q_17_1_exp')">
+<span class="option-letter">C</span>Equal to normal full load current
+</div>
+<div class="option" onclick="selectOption('q_17_1', 3, 1, 'q_17_1_exp')">
+<span class="option-letter">D</span>Zero
+</div>
+</div>
+<div class="explanation" id="q_17_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Devices like motors and transformers have starting current. It is larger than normal full load current.</div>
+</div>
+</div>
+<div class="question-card" id="q_17_2">
+<div class="question-text"><span class="question-number">2</span>The primary protection should respond to starting current to ensure fast protection.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_17_2', true, false, 'q_17_2_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_17_2', false, false, 'q_17_2_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_17_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The primary protection should NOT respond to starting current. The statement is false because responding to starting current would cause nuisance tripping.</div>
+</div>
+</div>
+<div class="question-card" id="q_17_3">
+<div class="question-text"><span class="question-number">3</span>Induction motor starting current is typically:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_17_3', 0, 2, 'q_17_3_exp')">
+<span class="option-letter">A</span>1-2 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_3', 1, 2, 'q_17_3_exp')">
+<span class="option-letter">B</span>3-4 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_3', 2, 2, 'q_17_3_exp')">
+<span class="option-letter">C</span>5-8 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_3', 3, 2, 'q_17_3_exp')">
+<span class="option-letter">D</span>15-20 times the rated value
+</div>
+</div>
+<div class="explanation" id="q_17_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">IM starting current is typically from 5-8 times the rated value.</div>
+</div>
+</div>
+<div class="question-card" id="q_17_4">
+<div class="question-text"><span class="question-number">4</span>Motor starting current lasts from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_17_4', 0, 3, 'q_17_4_exp')">
+<span class="option-letter">A</span>Several minutes
+</div>
+<div class="option" onclick="selectOption('q_17_4', 1, 3, 'q_17_4_exp')">
+<span class="option-letter">B</span>Days
+</div>
+<div class="option" onclick="selectOption('q_17_4', 2, 3, 'q_17_4_exp')">
+<span class="option-letter">C</span>Several hours
+</div>
+<div class="option" onclick="selectOption('q_17_4', 3, 3, 'q_17_4_exp')">
+<span class="option-letter">D</span>A fraction of second to few seconds
+</div>
+</div>
+<div class="explanation" id="q_17_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">It lasts from a fraction of second to few seconds.</div>
+</div>
+</div>
+<div class="question-card" id="q_17_5">
+<div class="question-text"><span class="question-number">5</span>Transformer inrush current is typically:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_17_5', 0, 1, 'q_17_5_exp')">
+<span class="option-letter">A</span>1-2 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_5', 1, 1, 'q_17_5_exp')">
+<span class="option-letter">B</span>5-15 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_5', 2, 1, 'q_17_5_exp')">
+<span class="option-letter">C</span>3-4 times the rated value
+</div>
+<div class="option" onclick="selectOption('q_17_5', 3, 1, 'q_17_5_exp')">
+<span class="option-letter">D</span>20-30 times the rated value
+</div>
+</div>
+<div class="explanation" id="q_17_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Transformer inrush current is typically from 5-15 times the rated value.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(16)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(18)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide18">
+<div class="slide-counter">Slide 18 of 26</div>
+<h2 class="slide-title">Slide 18: Complete Coordination Chart</h2>
+<div class="question-card" id="q_18_1">
+<div class="question-text"><span class="question-number">1</span>In the coordination chart, all damage curves are:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_18_1', 0, 0, 'q_18_1_exp')">
+<span class="option-letter">A</span>Above the secondary protection
+</div>
+<div class="option" onclick="selectOption('q_18_1', 1, 0, 'q_18_1_exp')">
+<span class="option-letter">B</span>Below the secondary protection
+</div>
+<div class="option" onclick="selectOption('q_18_1', 2, 0, 'q_18_1_exp')">
+<span class="option-letter">C</span>At the same level
+</div>
+<div class="option" onclick="selectOption('q_18_1', 3, 0, 'q_18_1_exp')">
+<span class="option-letter">D</span>Crossing the protection
+</div>
+</div>
+<div class="explanation" id="q_18_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">All damage curves are above the secondary protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_18_2">
+<div class="question-text"><span class="question-number">2</span>The transformer inrush point is positioned:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_18_2', 0, 2, 'q_18_2_exp')">
+<span class="option-letter">A</span>Above primary protection
+</div>
+<div class="option" onclick="selectOption('q_18_2', 1, 2, 'q_18_2_exp')">
+<span class="option-letter">B</span>At the same level
+</div>
+<div class="option" onclick="selectOption('q_18_2', 2, 2, 'q_18_2_exp')">
+<span class="option-letter">C</span>Below primary protection
+</div>
+<div class="option" onclick="selectOption('q_18_2', 3, 2, 'q_18_2_exp')">
+<span class="option-letter">D</span>Crossing primary protection
+</div>
+</div>
+<div class="explanation" id="q_18_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Transformer inrush point is below primary protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_18_3">
+<div class="question-text"><span class="question-number">3</span>Fuses and main feeder relay are coordinated at the same fault current value.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_18_3', true, false, 'q_18_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_18_3', false, false, 'q_18_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_18_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Fuses and main feeder relay are coordinated between minimum and maximum fault current for the fuse, not at the same value. The statement is false.</div>
+</div>
+</div>
+<div class="question-card" id="q_18_4">
+<div class="question-text"><span class="question-number">4</span>The digital 50 relay can be divided into:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_18_4', 0, 3, 'q_18_4_exp')">
+<span class="option-letter">A</span>One part only
+</div>
+<div class="option" onclick="selectOption('q_18_4', 1, 3, 'q_18_4_exp')">
+<span class="option-letter">B</span>Four parts
+</div>
+<div class="option" onclick="selectOption('q_18_4', 2, 3, 'q_18_4_exp')">
+<span class="option-letter">C</span>Three parts
+</div>
+<div class="option" onclick="selectOption('q_18_4', 3, 3, 'q_18_4_exp')">
+<span class="option-letter">D</span>Two parts: low set and high set
+</div>
+</div>
+<div class="explanation" id="q_18_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The digital 50 relay can be divided into two parts: low set and high set.</div>
+</div>
+</div>
+<div class="question-card" id="q_18_5">
+<div class="question-text"><span class="question-number">5</span>Even if the low set is used, the protection devices are coordinated.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_18_5', true, true, 'q_18_5_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_18_5', false, true, 'q_18_5_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_18_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Even if the low set is used (purple), the protection devices are coordinated.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(17)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(19)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide19">
+<div class="slide-counter">Slide 19 of 26</div>
+<h2 class="slide-title">Slide 19: Overcurrent Protection Coordination for Timed Relays</h2>
+<div class="question-card" id="q_19_1">
+<div class="question-text"><span class="question-number">1</span>This section covers coordination for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_19_1', 0, 1, 'q_19_1_exp')">
+<span class="option-letter">A</span>Instantaneous relays only
+</div>
+<div class="option" onclick="selectOption('q_19_1', 1, 1, 'q_19_1_exp')">
+<span class="option-letter">B</span>Timed overcurrent relays (51)
+</div>
+<div class="option" onclick="selectOption('q_19_1', 2, 1, 'q_19_1_exp')">
+<span class="option-letter">C</span>Differential relays
+</div>
+<div class="option" onclick="selectOption('q_19_1', 3, 1, 'q_19_1_exp')">
+<span class="option-letter">D</span>Distance relays
+</div>
+</div>
+<div class="explanation" id="q_19_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Overcurrent Protection Coordination for timed overcurrent relays (51).</div>
+</div>
+</div>
+<div class="question-card" id="q_19_2">
+<div class="question-text"><span class="question-number">2</span>Timed overcurrent relays are used mainly in:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_19_2', 0, 0, 'q_19_2_exp')">
+<span class="option-letter">A</span>Radial systems
+</div>
+<div class="option" onclick="selectOption('q_19_2', 1, 0, 'q_19_2_exp')">
+<span class="option-letter">B</span>Only radial systems
+</div>
+<div class="option" onclick="selectOption('q_19_2', 2, 0, 'q_19_2_exp')">
+<span class="option-letter">C</span>Only looped systems
+</div>
+<div class="option" onclick="selectOption('q_19_2', 3, 0, 'q_19_2_exp')">
+<span class="option-letter">D</span>Only mesh systems
+</div>
+</div>
+<div class="explanation" id="q_19_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Radial systems are protected by time-delay overcurrent relays.</div>
+</div>
+</div>
+<div class="question-card" id="q_19_3">
+<div class="question-text"><span class="question-number">3</span>Coordination ensures that all breakers open simultaneously for any fault.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_19_3', true, false, 'q_19_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_19_3', false, false, 'q_19_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_19_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Coordination ensures that the breaker closest to the fault opens first, not all simultaneously. The statement is false.</div>
+</div>
+</div>
+<div class="question-card" id="q_19_4">
+<div class="question-text"><span class="question-number">4</span>If the designated breaker does not operate, the next upstream breaker should operate after:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_19_4', 0, 2, 'q_19_4_exp')">
+<span class="option-letter">A</span>Immediately
+</div>
+<div class="option" onclick="selectOption('q_19_4', 1, 2, 'q_19_4_exp')">
+<span class="option-letter">B</span>Never
+</div>
+<div class="option" onclick="selectOption('q_19_4', 2, 2, 'q_19_4_exp')">
+<span class="option-letter">C</span>A carefully selected time delay
+</div>
+<div class="option" onclick="selectOption('q_19_4', 3, 2, 'q_19_4_exp')">
+<span class="option-letter">D</span>Randomly
+</div>
+</div>
+<div class="explanation" id="q_19_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">If the designated breaker does not operate, the next upstream circuit breaker should operate after taking a signal from his own relay, but in this case larger area will be interrupted.</div>
+</div>
+</div>
+<div class="question-card" id="q_19_5">
+<div class="question-text"><span class="question-number">5</span>The relay gives a trip signal after:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_19_5', 0, 3, 'q_19_5_exp')">
+<span class="option-letter">A</span>Zero time
+</div>
+<div class="option" onclick="selectOption('q_19_5', 1, 3, 'q_19_5_exp')">
+<span class="option-letter">B</span>Random time
+</div>
+<div class="option" onclick="selectOption('q_19_5', 2, 3, 'q_19_5_exp')">
+<span class="option-letter">C</span>Maximum time
+</div>
+<div class="option" onclick="selectOption('q_19_5', 3, 3, 'q_19_5_exp')">
+<span class="option-letter">D</span>A carefully selected time delay
+</div>
+</div>
+<div class="explanation" id="q_19_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">This relay will give this trip signal after carefully selected time delay.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(18)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(20)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide20">
+<div class="slide-counter">Slide 20 of 26</div>
+<h2 class="slide-title">Slide 20: Protection System Coordination - Principles</h2>
+<div class="question-card" id="q_20_1">
+<div class="question-text"><span class="question-number">1</span>Radial systems are protected by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_20_1', 0, 1, 'q_20_1_exp')">
+<span class="option-letter">A</span>Instantaneous overcurrent relays only
+</div>
+<div class="option" onclick="selectOption('q_20_1', 1, 1, 'q_20_1_exp')">
+<span class="option-letter">B</span>Time-delay overcurrent relays
+</div>
+<div class="option" onclick="selectOption('q_20_1', 2, 1, 'q_20_1_exp')">
+<span class="option-letter">C</span>Differential relays
+</div>
+<div class="option" onclick="selectOption('q_20_1', 3, 1, 'q_20_1_exp')">
+<span class="option-letter">D</span>Distance relays
+</div>
+</div>
+<div class="explanation" id="q_20_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Radial systems are protected by time-delay overcurrent relays.</div>
+</div>
+</div>
+<div class="question-card" id="q_20_2">
+<div class="question-text"><span class="question-number">2</span>Time delays are adjusted such that:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_20_2', 0, 0, 'q_20_2_exp')">
+<span class="option-letter">A</span>The breaker closest to the fault opens first
+</div>
+<div class="option" onclick="selectOption('q_20_2', 1, 0, 'q_20_2_exp')">
+<span class="option-letter">B</span>All breakers open simultaneously
+</div>
+<div class="option" onclick="selectOption('q_20_2', 2, 0, 'q_20_2_exp')">
+<span class="option-letter">C</span>Only the source breaker opens
+</div>
+<div class="option" onclick="selectOption('q_20_2', 3, 0, 'q_20_2_exp')">
+<span class="option-letter">D</span>No breaker opens
+</div>
+</div>
+<div class="explanation" id="q_20_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Time delays are adjusted such that the breaker closest to the fault opens, while other circuit breakers remain closed.</div>
+</div>
+</div>
+<div class="question-card" id="q_20_3">
+<div class="question-text"><span class="question-number">3</span>If the designated breaker fails, no backup breaker should operate.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_20_3', true, false, 'q_20_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_20_3', false, false, 'q_20_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_20_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">If the designated breaker fails, the next upstream breaker should operate as backup. The statement is false because backup must operate.</div>
+</div>
+</div>
+<div class="question-card" id="q_20_4">
+<div class="question-text"><span class="question-number">4</span>When backup protection operates, the interrupted area is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_20_4', 0, 2, 'q_20_4_exp')">
+<span class="option-letter">A</span>Smaller
+</div>
+<div class="option" onclick="selectOption('q_20_4', 1, 2, 'q_20_4_exp')">
+<span class="option-letter">B</span>The same
+</div>
+<div class="option" onclick="selectOption('q_20_4', 2, 2, 'q_20_4_exp')">
+<span class="option-letter">C</span>Larger
+</div>
+<div class="option" onclick="selectOption('q_20_4', 3, 2, 'q_20_4_exp')">
+<span class="option-letter">D</span>Zero
+</div>
+</div>
+<div class="explanation" id="q_20_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">If the designated breaker does not operate, the next upstream circuit breaker should operate, but in this case larger area will be interrupted.</div>
+</div>
+</div>
+<div class="question-card" id="q_20_5">
+<div class="question-text"><span class="question-number">5</span>The trip signal timing is determined by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_20_5', 0, 3, 'q_20_5_exp')">
+<span class="option-letter">A</span>Random selection
+</div>
+<div class="option" onclick="selectOption('q_20_5', 1, 3, 'q_20_5_exp')">
+<span class="option-letter">B</span>The load
+</div>
+<div class="option" onclick="selectOption('q_20_5', 2, 3, 'q_20_5_exp')">
+<span class="option-letter">C</span>The operator
+</div>
+<div class="option" onclick="selectOption('q_20_5', 3, 3, 'q_20_5_exp')">
+<span class="option-letter">D</span>The protection engineer
+</div>
+</div>
+<div class="explanation" id="q_20_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The time delay is designed by the protection engineer and executed by the relay.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(19)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(21)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide21">
+<div class="slide-counter">Slide 21 of 26</div>
+<h2 class="slide-title">Slide 21: Protection System Coordination - Example Diagram</h2>
+<div class="question-card" id="q_21_1">
+<div class="question-text"><span class="question-number">1</span>For a fault at P1, which breaker should operate first?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_21_1', 0, 1, 'q_21_1_exp')">
+<span class="option-letter">A</span>B1
+</div>
+<div class="option" onclick="selectOption('q_21_1', 1, 1, 'q_21_1_exp')">
+<span class="option-letter">B</span>B3
+</div>
+<div class="option" onclick="selectOption('q_21_1', 2, 1, 'q_21_1_exp')">
+<span class="option-letter">C</span>B2
+</div>
+<div class="option" onclick="selectOption('q_21_1', 3, 1, 'q_21_1_exp')">
+<span class="option-letter">D</span>None
+</div>
+</div>
+<div class="explanation" id="q_21_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For a fault at P1, B3 should operate based on a trip signal from a relay at the same position as B3.</div>
+</div>
+</div>
+<div class="question-card" id="q_21_2">
+<div class="question-text"><span class="question-number">2</span>If B3 does not operate, which breaker should operate as backup?<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_21_2', 0, 0, 'q_21_2_exp')">
+<span class="option-letter">A</span>B2
+</div>
+<div class="option" onclick="selectOption('q_21_2', 1, 0, 'q_21_2_exp')">
+<span class="option-letter">B</span>B1 only
+</div>
+<div class="option" onclick="selectOption('q_21_2', 2, 0, 'q_21_2_exp')">
+<span class="option-letter">C</span>B3 again
+</div>
+<div class="option" onclick="selectOption('q_21_2', 3, 0, 'q_21_2_exp')">
+<span class="option-letter">D</span>None
+</div>
+</div>
+<div class="explanation" id="q_21_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">If B3 does not operate due to any problem, B2 should operate after a time delay.</div>
+</div>
+</div>
+<div class="question-card" id="q_21_3">
+<div class="question-text"><span class="question-number">3</span>The system voltage shown is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_21_3', 0, 2, 'q_21_3_exp')">
+<span class="option-letter">A</span>220 kV / 11 kV
+</div>
+<div class="option" onclick="selectOption('q_21_3', 1, 2, 'q_21_3_exp')">
+<span class="option-letter">B</span>11 kV / 0.4 kV
+</div>
+<div class="option" onclick="selectOption('q_21_3', 2, 2, 'q_21_3_exp')">
+<span class="option-letter">C</span>345 kV / 34.5 kV
+</div>
+<div class="option" onclick="selectOption('q_21_3', 3, 2, 'q_21_3_exp')">
+<span class="option-letter">D</span>66 kV / 11 kV
+</div>
+</div>
+<div class="explanation" id="q_21_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The diagram shows 345kVΔ/34.5kV transformer.</div>
+</div>
+</div>
+<div class="question-card" id="q_21_4">
+<div class="question-text"><span class="question-number">4</span>The relay at B2 is the primary protection for fault at P1.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_21_4', true, false, 'q_21_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_21_4', false, false, 'q_21_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_21_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The relay at B3 is the primary protection for fault at P1, not B2. B2 is backup. The statement is false.</div>
+</div>
+</div>
+<div class="question-card" id="q_21_5">
+<div class="question-text"><span class="question-number">5</span>The loads connected are labeled as:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_21_5', 0, 3, 'q_21_5_exp')">
+<span class="option-letter">A</span>R1, R2, and R3
+</div>
+<div class="option" onclick="selectOption('q_21_5', 1, 3, 'q_21_5_exp')">
+<span class="option-letter">B</span>P1, P2, and P3
+</div>
+<div class="option" onclick="selectOption('q_21_5', 2, 3, 'q_21_5_exp')">
+<span class="option-letter">C</span>B1, B2, and B3
+</div>
+<div class="option" onclick="selectOption('q_21_5', 3, 3, 'q_21_5_exp')">
+<span class="option-letter">D</span>L1, L2, and L3
+</div>
+</div>
+<div class="explanation" id="q_21_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The diagram shows loads L1, L2, and L3 connected at different points.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(20)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(22)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide22">
+<div class="slide-counter">Slide 22 of 26</div>
+<h2 class="slide-title">Slide 22: Primary and Backup Protection Operation</h2>
+<div class="question-card" id="q_22_1">
+<div class="question-text"><span class="question-number">1</span>Operation of R3-B3 for fault at P1 is called:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_22_1', 0, 1, 'q_22_1_exp')">
+<span class="option-letter">A</span>Backup protection
+</div>
+<div class="option" onclick="selectOption('q_22_1', 1, 1, 'q_22_1_exp')">
+<span class="option-letter">B</span>Primary protection
+</div>
+<div class="option" onclick="selectOption('q_22_1', 2, 1, 'q_22_1_exp')">
+<span class="option-letter">C</span>Secondary protection
+</div>
+<div class="option" onclick="selectOption('q_22_1', 3, 1, 'q_22_1_exp')">
+<span class="option-letter">D</span>Emergency protection
+</div>
+</div>
+<div class="explanation" id="q_22_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Operation of R3-B3 is called operation of primary protection for P1 fault.</div>
+</div>
+</div>
+<div class="question-card" id="q_22_2">
+<div class="question-text"><span class="question-number">2</span>Operation of R2-B2 for fault at P1 is called:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_22_2', 0, 0, 'q_22_2_exp')">
+<span class="option-letter">A</span>Backup protection
+</div>
+<div class="option" onclick="selectOption('q_22_2', 1, 0, 'q_22_2_exp')">
+<span class="option-letter">B</span>Primary protection
+</div>
+<div class="option" onclick="selectOption('q_22_2', 2, 0, 'q_22_2_exp')">
+<span class="option-letter">C</span>Emergency protection
+</div>
+<div class="option" onclick="selectOption('q_22_2', 3, 0, 'q_22_2_exp')">
+<span class="option-letter">D</span>Secondary protection
+</div>
+</div>
+<div class="explanation" id="q_22_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Operation of R2-B2 is called operation of backup protection for P1 fault.</div>
+</div>
+</div>
+<div class="question-card" id="q_22_3">
+<div class="question-text"><span class="question-number">3</span>If B2 operates for a fault at P1, only the faulted section will be interrupted.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_22_3', true, false, 'q_22_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_22_3', false, false, 'q_22_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_22_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">If B2 operates for a fault at P1, a larger portion will be interrupted unnecessarily. The statement is false because B2 interrupts more than needed.</div>
+</div>
+</div>
+<div class="question-card" id="q_22_4">
+<div class="question-text"><span class="question-number">4</span>The target of protection design is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_22_4', 0, 2, 'q_22_4_exp')">
+<span class="option-letter">A</span>Backup protection operation
+</div>
+<div class="option" onclick="selectOption('q_22_4', 1, 2, 'q_22_4_exp')">
+<span class="option-letter">B</span>No operation
+</div>
+<div class="option" onclick="selectOption('q_22_4', 2, 2, 'q_22_4_exp')">
+<span class="option-letter">C</span>Main (primary) protection operation
+</div>
+<div class="option" onclick="selectOption('q_22_4', 3, 2, 'q_22_4_exp')">
+<span class="option-letter">D</span>Random operation
+</div>
+</div>
+<div class="explanation" id="q_22_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Operation of main protection should be the target of protection.</div>
+</div>
+</div>
+<div class="question-card" id="q_22_5">
+<div class="question-text"><span class="question-number">5</span>Primary protection operates:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_22_5', 0, 3, 'q_22_5_exp')">
+<span class="option-letter">A</span>Slower than backup
+</div>
+<div class="option" onclick="selectOption('q_22_5', 1, 3, 'q_22_5_exp')">
+<span class="option-letter">B</span>Never
+</div>
+<div class="option" onclick="selectOption('q_22_5', 2, 3, 'q_22_5_exp')">
+<span class="option-letter">C</span>At the same time as backup
+</div>
+<div class="option" onclick="selectOption('q_22_5', 3, 3, 'q_22_5_exp')">
+<span class="option-letter">D</span>Faster than backup
+</div>
+</div>
+<div class="explanation" id="q_22_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Primary protection (R3-B3) should operate first and faster than backup protection (R2-B2).</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(21)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(23)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide23">
+<div class="slide-counter">Slide 23 of 26</div>
+<h2 class="slide-title">Slide 23: Timed Overcurrent Relay Characteristics</h2>
+<div class="question-card" id="q_23_1">
+<div class="question-text"><span class="question-number">1</span>Timed overcurrent relays have:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_23_1', 0, 1, 'q_23_1_exp')">
+<span class="option-letter">A</span>Definite time characteristics
+</div>
+<div class="option" onclick="selectOption('q_23_1', 1, 1, 'q_23_1_exp')">
+<span class="option-letter">B</span>Inverse time-current characteristics
+</div>
+<div class="option" onclick="selectOption('q_23_1', 2, 1, 'q_23_1_exp')">
+<span class="option-letter">C</span>Instantaneous characteristics
+</div>
+<div class="option" onclick="selectOption('q_23_1', 3, 1, 'q_23_1_exp')">
+<span class="option-letter">D</span>Linear characteristics
+</div>
+</div>
+<div class="explanation" id="q_23_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Timed overcurrent relays have inverse time-current characteristics.</div>
+</div>
+</div>
+<div class="question-card" id="q_23_2">
+<div class="question-text"><span class="question-number">2</span>The x-axis of the relay characteristic curve represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_23_2', 0, 0, 'q_23_2_exp')">
+<span class="option-letter">A</span>Multiples of tap setting
+</div>
+<div class="option" onclick="selectOption('q_23_2', 1, 0, 'q_23_2_exp')">
+<span class="option-letter">B</span>Operating time
+</div>
+<div class="option" onclick="selectOption('q_23_2', 2, 0, 'q_23_2_exp')">
+<span class="option-letter">C</span>Current in amperes
+</div>
+<div class="option" onclick="selectOption('q_23_2', 3, 0, 'q_23_2_exp')">
+<span class="option-letter">D</span>Voltage
+</div>
+</div>
+<div class="explanation" id="q_23_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The x-axis represents multiples of tap setting.</div>
+</div>
+</div>
+<div class="question-card" id="q_23_3">
+<div class="question-text"><span class="question-number">3</span>The y-axis of the relay characteristic curve represents:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_23_3', 0, 2, 'q_23_3_exp')">
+<span class="option-letter">A</span>Current
+</div>
+<div class="option" onclick="selectOption('q_23_3', 1, 2, 'q_23_3_exp')">
+<span class="option-letter">B</span>Voltage
+</div>
+<div class="option" onclick="selectOption('q_23_3', 2, 2, 'q_23_3_exp')">
+<span class="option-letter">C</span>Operating time
+</div>
+<div class="option" onclick="selectOption('q_23_3', 3, 2, 'q_23_3_exp')">
+<span class="option-letter">D</span>Power
+</div>
+</div>
+<div class="explanation" id="q_23_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The y-axis represents operating time.</div>
+</div>
+</div>
+<div class="question-card" id="q_23_4">
+<div class="question-text"><span class="question-number">4</span>Each relay has Time Dial Setting (TDS) ranging from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_23_4', 0, 3, 'q_23_4_exp')">
+<span class="option-letter">A</span>0 to 5
+</div>
+<div class="option" onclick="selectOption('q_23_4', 1, 3, 'q_23_4_exp')">
+<span class="option-letter">B</span>5 to 15
+</div>
+<div class="option" onclick="selectOption('q_23_4', 2, 3, 'q_23_4_exp')">
+<span class="option-letter">C</span>1 to 10
+</div>
+<div class="option" onclick="selectOption('q_23_4', 3, 3, 'q_23_4_exp')">
+<span class="option-letter">D</span>0.5 to 11
+</div>
+</div>
+<div class="explanation" id="q_23_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Each relay has Time Dial Setting (TDS) from 0.5 to 11.</div>
+</div>
+</div>
+<div class="question-card" id="q_23_5">
+<div class="question-text"><span class="question-number">5</span>Relay operating time decreases when TDS increases.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_23_5', true, false, 'q_23_5_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_23_5', false, false, 'q_23_5_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_23_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Relay operating time INCREASES when TDS increases. The statement is false because it says decreases instead of increases.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(22)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(24)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide24">
+<div class="slide-counter">Slide 24 of 26</div>
+<h2 class="slide-title">Slide 24: Tap Setting and Coordination</h2>
+<div class="question-card" id="q_24_1">
+<div class="question-text"><span class="question-number">1</span>Correct selection of tap setting and TDS guarantees:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_24_1', 0, 1, 'q_24_1_exp')">
+<span class="option-letter">A</span>Random operation
+</div>
+<div class="option" onclick="selectOption('q_24_1', 1, 1, 'q_24_1_exp')">
+<span class="option-letter">B</span>Coordinated operation of the relays
+</div>
+<div class="option" onclick="selectOption('q_24_1', 2, 1, 'q_24_1_exp')">
+<span class="option-letter">C</span>Simultaneous operation
+</div>
+<div class="option" onclick="selectOption('q_24_1', 3, 1, 'q_24_1_exp')">
+<span class="option-letter">D</span>No operation
+</div>
+</div>
+<div class="explanation" id="q_24_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Correct selection of tap setting and TDS of each relay guarantees coordinated operation of the relays.</div>
+</div>
+</div>
+<div class="question-card" id="q_24_2">
+<div class="question-text"><span class="question-number">2</span>The relay input is taken from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_24_2', 0, 0, 'q_24_2_exp')">
+<span class="option-letter">A</span>The secondary of current transformer
+</div>
+<div class="option" onclick="selectOption('q_24_2', 1, 0, 'q_24_2_exp')">
+<span class="option-letter">B</span>The primary of current transformer
+</div>
+<div class="option" onclick="selectOption('q_24_2', 2, 0, 'q_24_2_exp')">
+<span class="option-letter">C</span>Voltage transformer
+</div>
+<div class="option" onclick="selectOption('q_24_2', 3, 0, 'q_24_2_exp')">
+<span class="option-letter">D</span>Power transformer
+</div>
+</div>
+<div class="explanation" id="q_24_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The secondary of current transformer is the relay input.</div>
+</div>
+</div>
+<div class="question-card" id="q_24_3">
+<div class="question-text"><span class="question-number">3</span>Tap setting is considered the:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_24_3', 0, 2, 'q_24_3_exp')">
+<span class="option-letter">A</span>Maximum current setting
+</div>
+<div class="option" onclick="selectOption('q_24_3', 1, 2, 'q_24_3_exp')">
+<span class="option-letter">B</span>Minimum voltage setting
+</div>
+<div class="option" onclick="selectOption('q_24_3', 2, 2, 'q_24_3_exp')">
+<span class="option-letter">C</span>Pickup setting
+</div>
+<div class="option" onclick="selectOption('q_24_3', 3, 2, 'q_24_3_exp')">
+<span class="option-letter">D</span>Time delay setting
+</div>
+</div>
+<div class="explanation" id="q_24_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Tap setting is considered the pickup setting, below which the relay will not issue a trip signal.</div>
+</div>
+</div>
+<div class="question-card" id="q_24_4">
+<div class="question-text"><span class="question-number">4</span>For currents smaller than tap setting, the relay will issue a trip signal immediately.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_24_4', true, false, 'q_24_4_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_24_4', false, false, 'q_24_4_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_24_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Below the tap setting, the relay will NOT issue a trip signal. The statement is false because it says the relay trips for currents below pickup.</div>
+</div>
+</div>
+<div class="question-card" id="q_24_5">
+<div class="question-text"><span class="question-number">5</span>Below the tap setting, the relay will:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_24_5', 0, 3, 'q_24_5_exp')">
+<span class="option-letter">A</span>Issue a trip signal immediately
+</div>
+<div class="option" onclick="selectOption('q_24_5', 1, 3, 'q_24_5_exp')">
+<span class="option-letter">B</span>Issue a trip signal after delay
+</div>
+<div class="option" onclick="selectOption('q_24_5', 2, 3, 'q_24_5_exp')">
+<span class="option-letter">C</span>Issue an alarm only
+</div>
+<div class="option" onclick="selectOption('q_24_5', 3, 3, 'q_24_5_exp')">
+<span class="option-letter">D</span>Not issue a trip signal
+</div>
+</div>
+<div class="explanation" id="q_24_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Tap setting is considered the pickup setting, below which, the relay will not issue a trip signal.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(23)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(25)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide25">
+<div class="slide-counter">Slide 25 of 26</div>
+<h2 class="slide-title">Slide 35: Notes - CT Ratio Selection</h2>
+<div class="question-card" id="q_25_1">
+<div class="question-text"><span class="question-number">1</span>To select CT ratio, the full load current at the relay is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_25_1', 0, 1, 'q_25_1_exp')">
+<span class="option-letter">A</span>Ignored
+</div>
+<div class="option" onclick="selectOption('q_25_1', 1, 1, 'q_25_1_exp')">
+<span class="option-letter">B</span>Calculated and the CT with lowest primary current above full load is selected
+</div>
+<div class="option" onclick="selectOption('q_25_1', 2, 1, 'q_25_1_exp')">
+<span class="option-letter">C</span>Estimated
+</div>
+<div class="option" onclick="selectOption('q_25_1', 3, 1, 'q_25_1_exp')">
+<span class="option-letter">D</span>Set to maximum value
+</div>
+</div>
+<div class="explanation" id="q_25_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">In order to select CT ratio, full load current at the relay is calculated and the CT with lowest primary current above the full load current is selected.</div>
+</div>
+</div>
+<div class="question-card" id="q_25_2">
+<div class="question-text"><span class="question-number">2</span>If full load current is 170A and available CT ratios are 50/5, 100/5, 200/5, 300/5, the best CT ratio is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_25_2', 0, 0, 'q_25_2_exp')">
+<span class="option-letter">A</span>200/5
+</div>
+<div class="option" onclick="selectOption('q_25_2', 1, 0, 'q_25_2_exp')">
+<span class="option-letter">B</span>100/5
+</div>
+<div class="option" onclick="selectOption('q_25_2', 2, 0, 'q_25_2_exp')">
+<span class="option-letter">C</span>50/5
+</div>
+<div class="option" onclick="selectOption('q_25_2', 3, 0, 'q_25_2_exp')">
+<span class="option-letter">D</span>300/5
+</div>
+</div>
+<div class="explanation" id="q_25_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">For example, if the full load current at the relay is 170A, and the available CT ratios are 50/5, 100/5, 200/5, 300/5, the best CT ratio will be 200/5.</div>
+</div>
+</div>
+<div class="question-card" id="q_25_3">
+<div class="question-text"><span class="question-number">3</span>The coordination time interval is used to avoid errors from:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_25_3', 0, 2, 'q_25_3_exp')">
+<span class="option-letter">A</span>Only CT errors
+</div>
+<div class="option" onclick="selectOption('q_25_3', 1, 2, 'q_25_3_exp')">
+<span class="option-letter">B</span>Only relay time errors
+</div>
+<div class="option" onclick="selectOption('q_25_3', 2, 2, 'q_25_3_exp')">
+<span class="option-letter">C</span>Devices like CT, Relay time, etc.
+</div>
+<div class="option" onclick="selectOption('q_25_3', 3, 2, 'q_25_3_exp')">
+<span class="option-letter">D</span>Only breaker errors
+</div>
+</div>
+<div class="explanation" id="q_25_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">The coordination time interval is used to avoid errors from devices like CT, Relay time, etc.</div>
+</div>
+</div>
+<div class="question-card" id="q_25_4">
+<div class="question-text"><span class="question-number">4</span>The coordination time interval can be:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_25_4', 0, 3, 'q_25_4_exp')">
+<span class="option-letter">A</span>0.01-0.05s
+</div>
+<div class="option" onclick="selectOption('q_25_4', 1, 3, 'q_25_4_exp')">
+<span class="option-letter">B</span>5-10s
+</div>
+<div class="option" onclick="selectOption('q_25_4', 2, 3, 'q_25_4_exp')">
+<span class="option-letter">C</span>1-2s
+</div>
+<div class="option" onclick="selectOption('q_25_4', 3, 3, 'q_25_4_exp')">
+<span class="option-letter">D</span>0.1-0.4s
+</div>
+</div>
+<div class="explanation" id="q_25_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">It can be 0.1-0.4.</div>
+</div>
+</div>
+<div class="question-card" id="q_25_5">
+<div class="question-text"><span class="question-number">5</span>TDS of relays can only be found by calculation, not graphically.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_25_5', true, false, 'q_25_5_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_25_5', false, false, 'q_25_5_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_25_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">TDS of relays can be found graphically by adding relay curves on a coordination chart. The statement is false because it says only calculation.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(24)">← Previous</button>
+<button class="nav-btn" onclick="goToSlide(26)">Next →</button>
+</div>
+</div>
+<div class="slide-section" id="slide26">
+<div class="slide-counter">Slide 26 of 26</div>
+<h2 class="slide-title">Slide 36: Notes - TDS Calculation Methods</h2>
+<div class="question-card" id="q_26_1">
+<div class="question-text"><span class="question-number">1</span>Finding TDS by calculation is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_26_1', 0, 1, 'q_26_1_exp')">
+<span class="option-letter">A</span>Less accurate than graphical method
+</div>
+<div class="option" onclick="selectOption('q_26_1', 1, 1, 'q_26_1_exp')">
+<span class="option-letter">B</span>More accurate than graphical method
+</div>
+<div class="option" onclick="selectOption('q_26_1', 2, 1, 'q_26_1_exp')">
+<span class="option-letter">C</span>The same as graphical method
+</div>
+<div class="option" onclick="selectOption('q_26_1', 3, 1, 'q_26_1_exp')">
+<span class="option-letter">D</span>Not used
+</div>
+</div>
+<div class="explanation" id="q_26_1_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">However, finding TDS by calculation is more accurate.</div>
+</div>
+</div>
+<div class="question-card" id="q_26_2">
+<div class="question-text"><span class="question-number">2</span>TDS can be found graphically by:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_26_2', 0, 0, 'q_26_2_exp')">
+<span class="option-letter">A</span>Adding relay curves on a real coordination chart
+</div>
+<div class="option" onclick="selectOption('q_26_2', 1, 0, 'q_26_2_exp')">
+<span class="option-letter">B</span>Using only theoretical formulas
+</div>
+<div class="option" onclick="selectOption('q_26_2', 2, 0, 'q_26_2_exp')">
+<span class="option-letter">C</span>Using random values
+</div>
+<div class="option" onclick="selectOption('q_26_2', 3, 0, 'q_26_2_exp')">
+<span class="option-letter">D</span>Using only one fault current
+</div>
+</div>
+<div class="explanation" id="q_26_2_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">TDS of relays can be found graphically by adding the relay CCS on a real coordination chart such that all short circuit values and relaying times are available.</div>
+</div>
+</div>
+<div class="question-card" id="q_26_3">
+<div class="question-text"><span class="question-number">3</span>Graphical method requires only one fault current value to be available.<span class="type-badge type-tf">T/F</span></div>
+<div class="tf-options">
+<div class="tf-option" onclick="selectTF('q_26_3', true, false, 'q_26_3_exp')">TRUE</div>
+<div class="tf-option" onclick="selectTF('q_26_3', false, false, 'q_26_3_exp')">FALSE</div>
+</div>
+<div class="explanation" id="q_26_3_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Graphical method requires all short circuit values and relaying times to be available. The statement is false because it says only one value.</div>
+</div>
+</div>
+<div class="question-card" id="q_26_4">
+<div class="question-text"><span class="question-number">4</span>The main advantage of calculation method over graphical method is:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_26_4', 0, 2, 'q_26_4_exp')">
+<span class="option-letter">A</span>It is faster
+</div>
+<div class="option" onclick="selectOption('q_26_4', 1, 2, 'q_26_4_exp')">
+<span class="option-letter">B</span>It is easier
+</div>
+<div class="option" onclick="selectOption('q_26_4', 2, 2, 'q_26_4_exp')">
+<span class="option-letter">C</span>It is more accurate
+</div>
+<div class="option" onclick="selectOption('q_26_4', 3, 2, 'q_26_4_exp')">
+<span class="option-letter">D</span>It requires less data
+</div>
+</div>
+<div class="explanation" id="q_26_4_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Finding TDS by calculation is more accurate than graphical method.</div>
+</div>
+</div>
+<div class="question-card" id="q_26_5">
+<div class="question-text"><span class="question-number">5</span>Both graphical and calculation methods are used for:<span class="type-badge type-mcq">MCQ</span></div>
+<div class="options">
+<div class="option" onclick="selectOption('q_26_5', 0, 3, 'q_26_5_exp')">
+<span class="option-letter">A</span>Selecting CT ratios
+</div>
+<div class="option" onclick="selectOption('q_26_5', 1, 3, 'q_26_5_exp')">
+<span class="option-letter">B</span>Designing transformers
+</div>
+<div class="option" onclick="selectOption('q_26_5', 2, 3, 'q_26_5_exp')">
+<span class="option-letter">C</span>Selecting breaker ratings
+</div>
+<div class="option" onclick="selectOption('q_26_5', 3, 3, 'q_26_5_exp')">
+<span class="option-letter">D</span>Finding TDS of relays
+</div>
+</div>
+<div class="explanation" id="q_26_5_exp">
+<div class="explanation-label">📖 Explanation from Lecture:</div>
+<div class="explanation-text">Both methods are used for finding TDS (Time Dial Setting) of relays in protection coordination.</div>
+</div>
+</div>
+<div class="nav-buttons">
+<button class="nav-btn" onclick="goToSlide(25)">← Previous</button>
+<button class="nav-btn" onclick="showCompletion()">Finish 🎉</button>
+</div>
+</div>
+
+    </div>
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 26;
+        let score = 0;
+        let totalQuestions = 0;
+        let answeredQuestions = new Set();
+
+        // Count total questions
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+        totalQuestions += 5;
+
+        document.getElementById('total').textContent = totalQuestions;
+
+        function initNav() {
+            const nav = document.getElementById('slideNav');
+            for (let i = 1; i <= totalSlides; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'slide-btn';
+                btn.textContent = i;
+                btn.onclick = () => goToSlide(i);
+                nav.appendChild(btn);
+            }
+        }
+
+        function goToSlide(n) {
+            document.getElementById('slide' + currentSlide).classList.remove('active');
+            currentSlide = n;
+            document.getElementById('slide' + currentSlide).classList.add('active');
+            updateNavButtons();
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateNavButtons() {
+            const buttons = document.querySelectorAll('.slide-btn');
+            buttons.forEach((btn, index) => {
+                btn.classList.remove('active');
+                if (index + 1 === currentSlide) btn.classList.add('active');
+            });
+        }
+
+        function updateProgress() {
+            const progress = (answeredQuestions.size / totalQuestions) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function selectOption(qId, selected, correct, expId) {
+            const questionCard = document.getElementById(qId);
+            if (questionCard.dataset.answered) return;
+            questionCard.dataset.answered = 'true';
+
+            const options = questionCard.querySelectorAll('.option');
+            options.forEach((opt, index) => {
+                opt.classList.remove('selected');
+                opt.style.pointerEvents = 'none';
+                if (index === correct) opt.classList.add('correct');
+                else if (index === selected && selected !== correct) opt.classList.add('wrong');
+            });
+
+            if (selected === correct) score++;
+            else options[selected].classList.add('wrong');
+
+            document.getElementById(expId).classList.add('show');
+            answeredQuestions.add(qId);
+            document.getElementById('score').textContent = score;
+            updateProgress();
+            checkSlideCompletion(currentSlide);
+        }
+
+        function selectTF(qId, selected, correct, expId) {
+            const questionCard = document.getElementById(qId);
+            if (questionCard.dataset.answered) return;
+            questionCard.dataset.answered = 'true';
+
+            const tfOptions = questionCard.querySelectorAll('.tf-option');
+            tfOptions.forEach((opt, index) => {
+                const optValue = index === 0;
+                opt.classList.remove('selected');
+                opt.style.pointerEvents = 'none';
+                if (optValue === correct) opt.classList.add('correct');
+                else if (optValue === selected && selected !== correct) opt.classList.add('wrong');
+            });
+
+            if (selected === correct) score++;
+
+            document.getElementById(expId).classList.add('show');
+            answeredQuestions.add(qId);
+            document.getElementById('score').textContent = score;
+            updateProgress();
+            checkSlideCompletion(currentSlide);
+        }
+
+        function checkSlideCompletion(slideNum) {
+            const slide = document.getElementById('slide' + slideNum);
+            const questions = slide.querySelectorAll('.question-card');
+            let allAnswered = true;
+            questions.forEach(q => { if (!q.dataset.answered) allAnswered = false; });
+            if (allAnswered) {
+                const navButtons = document.querySelectorAll('.slide-btn');
+                navButtons[slideNum - 1].classList.add('completed');
+            }
+        }
+
+        function showCompletion() {
+            document.getElementById('completionMessage').classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        initNav();
+        goToSlide(1);
+    </script>
+</body>
+</html>
